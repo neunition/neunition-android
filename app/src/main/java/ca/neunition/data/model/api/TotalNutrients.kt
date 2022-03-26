@@ -1,0 +1,74 @@
+package ca.neunition.data.model.api
+
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
+data class TotalNutrients(
+    @Json(name = "CA")
+    val cA: ca.neunition.data.model.api.CAX?,
+    @Json(name = "CHOCDF")
+    val cHOCDF: ca.neunition.data.model.api.CHOCDFX?,
+    @Json(name = "CHOLE")
+    val cHOLE: ca.neunition.data.model.api.CHOLEX?,
+    @Json(name = "ENERC_KCAL")
+    val eNERCKCAL: ca.neunition.data.model.api.ENERCKCALX?,
+    @Json(name = "FAMS")
+    val fAMS: ca.neunition.data.model.api.FAMS?,
+    @Json(name = "FAPU")
+    val fAPU: ca.neunition.data.model.api.FAPU?,
+    @Json(name = "FASAT")
+    val fASAT: ca.neunition.data.model.api.FASATX?,
+    @Json(name = "FAT")
+    val fAT: ca.neunition.data.model.api.FATX?,
+    @Json(name = "FATRN")
+    val fATRN: ca.neunition.data.model.api.FATRN?,
+    @Json(name = "FE")
+    val fE: ca.neunition.data.model.api.FEX?,
+    @Json(name = "FIBTG")
+    val fIBTG: ca.neunition.data.model.api.FIBTGX?,
+    @Json(name = "FOLAC")
+    val fOLAC: ca.neunition.data.model.api.FOLAC?,
+    @Json(name = "FOLDFE")
+    val fOLDFE: ca.neunition.data.model.api.FOLDFEX?,
+    @Json(name = "FOLFD")
+    val fOLFD: ca.neunition.data.model.api.FOLFD?,
+    @Json(name = "K")
+    val k: ca.neunition.data.model.api.KX?,
+    @Json(name = "MG")
+    val mG: ca.neunition.data.model.api.MGX?,
+    @Json(name = "NA")
+    val nA: ca.neunition.data.model.api.NAX?,
+    @Json(name = "NIA")
+    val nIA: ca.neunition.data.model.api.NIAX?,
+    @Json(name = "P")
+    val p: ca.neunition.data.model.api.PX?,
+    @Json(name = "PROCNT")
+    val pROCNT: ca.neunition.data.model.api.PROCNTX?,
+    @Json(name = "RIBF")
+    val rIBF: ca.neunition.data.model.api.RIBFX?,
+    @Json(name = "SUGAR")
+    val sUGAR: ca.neunition.data.model.api.SUGAR?,
+    @Json(name = "SUGAR.added")
+    val sUGARAdded: ca.neunition.data.model.api.SUGARAdded?,
+    @Json(name = "THIA")
+    val tHIA: ca.neunition.data.model.api.THIAX?,
+    @Json(name = "TOCPHA")
+    val tOCPHA: ca.neunition.data.model.api.TOCPHAX?,
+    @Json(name = "VITA_RAE")
+    val vITARAE: ca.neunition.data.model.api.VITARAEX?,
+    @Json(name = "VITB12")
+    val vITB12: ca.neunition.data.model.api.VITB12X?,
+    @Json(name = "VITB6A")
+    val vITB6A: ca.neunition.data.model.api.VITB6AX?,
+    @Json(name = "VITC")
+    val vITC: ca.neunition.data.model.api.VITCX?,
+    @Json(name = "VITD")
+    val vITD: ca.neunition.data.model.api.VITDX?,
+    @Json(name = "VITK1")
+    val vITK1: ca.neunition.data.model.api.VITK1X?,
+    @Json(name = "WATER")
+    val wATER: ca.neunition.data.model.api.WATER?,
+    @Json(name = "ZN")
+    val zN: ca.neunition.data.model.api.ZNX?
+)

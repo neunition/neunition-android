@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="Gradle: org.adblockplus:adblock-android-webview:4.4.0@aar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-3/136743fec49bf798cedb55a56dd402d8/transformed/adblock-android-webview-4.4.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/136743fec49bf798cedb55a56dd402d8/transformed/adblock-android-webview-4.4.0/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-3/136743fec49bf798cedb55a56dd402d8/transformed/adblock-android-webview-4.4.0/AndroidManifest.xml" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.adblockplus/adblock-android-webview/4.4.0/9e28d68e39434c929c476b66005647cc38ce648c/adblock-android-webview-4.4.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.adblockplus/adblock-android-webview/4.4.0/667fee3a82bb07f395d9d401f5c417adceda143b/adblock-android-webview-4.4.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

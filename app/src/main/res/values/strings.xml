@@ -1,0 +1,34 @@
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="app_name">Neunition</string>
+    <string name="enter_meal_name">Enter your meal.</string>
+    <string name="settings_icon">Settings icon.</string>
+    <string name="neunition_logo">Neunition Logo</string>
+    <string name="today">Today: 0.0 kg of CO₂-eq</string>
+    <string name="week">This Week: 0.0 kg of CO₂-eq</string>
+    <string name="month">This Month: 0.0 kg of CO₂-eq</string>
+    <string name="year">This Year: 0.0 kg of CO₂-eq</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="no_internet_connection">No internet connection found. Please check your connection.</string>
+    <string name="user_profile_picture">User\'s profile picture.</string>
+    <string name="agreement">Agree to our <b>Terms &amp; Conditions</b> and <b>Privacy Policy</b></string>
+    <string name="ingredient">Ingredient</string>
+    <string name="plus">+</string>
+    <string name="weight">Weight</string>
+    <string name="current_ghg_emissions">Current GHG Emissions: 0.0 kg of CO₂-eq</string>
+    <string name="ingredient_emissions_placeholder">weight of x = weight kg of CO₂-eq</string>
+    <string name="search_for_a_recipe">Search for a recipe</string>
+    <string name="select_diet_health_labels">Select diet/health labels</string>
+    <string name="submit">Submit</string>
+    <string name="title_of_recipe">Title of recipe</string>
+    <string name="zero_score">0.00</string>
+    <string name="my_account_header">MY ACCOUNT</string>
+    <string name="support_header">SUPPORT</string>
+    <string name="breakfast_notification">Good Morning! &#127774;</string>
+    <string name="lunch_notification">It\'s Lunch Time! &#x1F37D;&#xFE0F;</string>
+    <string name="dinner_notification">Dinner Is Ready! &#127747;</string>
+    <string name="continue_with_facebook">Continue with Facebook</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="image_of_the_recipe">Image of the recipe</string>
+    <string name="progress_bar_recipe_description">A indeterminate progress bar for loading the recipe.</string>
+    <string name="random_selection_of_recipes">Get a random selection of recipes</string>
+</resources>

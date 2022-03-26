@@ -1,0 +1,73 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:key="my_account_category"
+        app:title="@string/my_account_header">
+        <EditTextPreference
+            app:allowDividerAbove="true"
+            app:icon="@drawable/ic_baseline_person"
+            app:key="full_name_preference"
+            app:singleLineTitle="true"
+            app:title="Name: "
+            app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            app:icon="@drawable/ic_baseline_email"
+            app:key="user_email_preference"
+            app:selectable="false"
+            app:singleLineTitle="true"
+            app:title="Email: " />
+
+        <Preference
+            app:icon="@drawable/ic_baseline_payment"
+            app:key="manage_subscription_preference"
+            app:singleLineTitle="true"
+            app:title="Manage Subscription" />
+
+        <Preference
+            app:icon="@drawable/ic_logout"
+            app:key="logout_preference"
+            app:singleLineTitle="true"
+            app:title="Log Out" />
+
+        <Preference
+            app:icon="@drawable/ic_baseline_delete_forever"
+            app:key="delete_account_preference"
+            app:singleLineTitle="true"
+            app:title="Delete Account" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:key="support_category"
+        app:title="@string/support_header">
+        <Preference
+            app:allowDividerAbove="true"
+            app:icon="@drawable/ic_info"
+            app:key="about_us_preference"
+            app:singleLineTitle="true"
+            app:title="About Us" />
+
+        <Preference
+            app:icon="@drawable/ic_baseline_stars"
+            app:key="rate_us_preference"
+            app:singleLineTitle="true"
+            app:title="Rate Us" />
+
+        <Preference
+            app:icon="@drawable/ic_security"
+            app:key="privacy_policy_preference"
+            app:singleLineTitle="true"
+            app:title="Privacy Policy" />
+
+        <Preference
+            app:icon="@drawable/ic_assignment"
+            app:key="terms_conditions_preference"
+            app:singleLineTitle="true"
+            app:title="Terms &amp; Conditions" />
+
+        <Preference
+            app:icon="@drawable/ic_baseline_help"
+            app:key="help_and_support_preference"
+            app:singleLineTitle="true"
+            app:title="Help &amp; Support" />
+    </PreferenceCategory>
+</PreferenceScreen>
