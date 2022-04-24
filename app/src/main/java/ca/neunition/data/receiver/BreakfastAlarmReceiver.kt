@@ -16,8 +16,8 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import ca.neunition.ui.main.view.SplashActivity
 import ca.neunition.R
+import ca.neunition.ui.main.view.SplashActivity
 
 class BreakfastAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {

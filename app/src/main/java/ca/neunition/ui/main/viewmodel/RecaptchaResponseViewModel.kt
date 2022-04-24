@@ -10,11 +10,9 @@
 package ca.neunition.ui.main.viewmodel
 
 import android.app.Application
-import ca.neunition.data.repository.RecaptchaRepository
 import androidx.annotation.NonNull
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.AndroidViewModel
-import ca.neunition.data.remote.response.RecaptchaVerifyResponse
+import ca.neunition.data.repository.RecaptchaRepository
 
 class RecaptchaResponseViewModel(application: Application) : AndroidViewModel(application) {
     fun getmRecaptchaObservable(

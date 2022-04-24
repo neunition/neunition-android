@@ -12,8 +12,8 @@ package ca.neunition.data.repository
 import androidx.annotation.NonNull
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ca.neunition.data.remote.response.RecaptchaVerifyResponse
 import ca.neunition.data.remote.request.RecaptchaVerificationService
+import ca.neunition.data.remote.response.RecaptchaVerifyResponse
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
