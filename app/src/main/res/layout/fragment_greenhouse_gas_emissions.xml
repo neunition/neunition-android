@@ -87,29 +87,10 @@
         android:text="@string/year"
         android:textColor="@android:color/black"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@+id/carbon_food_calc_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/month_score_text_view" />
-
-    <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/carbon_food_calc_button"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_marginTop="16dp"
-        android:adjustViewBounds="true"
-        android:background="@drawable/background_color"
-        android:contentDescription="@string/enter_meal_name"
-        android:elevation="2dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/logo"
-        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/year_score_text_view"
-        app:shapeAppearanceOverlay="@style/AppShapeAppearance.MediumComponent" />
+        app:layout_constraintTop_toBottomOf="@+id/month_score_text_view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
