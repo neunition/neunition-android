@@ -73,7 +73,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
     private lateinit var uploadIngredientsPhoto: AppCompatImageButton
 
     // GHG scores
-    private val foods = Constants.MEALS
+    private val foods = Constants.INGREDIENTS
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
     private var monthlyScore = BigDecimal("0.00")
@@ -88,7 +88,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_ingredients_calc, container, false)
+        return inflater.inflate(R.layout.fragment_ingredients_emissions, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
