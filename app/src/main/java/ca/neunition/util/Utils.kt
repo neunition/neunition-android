@@ -19,7 +19,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.StyleSpan
-import android.util.Log
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
@@ -31,8 +30,9 @@ import ca.neunition.data.model.api.Ingredient
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.math.BigDecimal
 
-private val FOODS by lazy { Constants.MEALS }
-private val SPECIAL_OILS: List<String> by lazy { listOf("palm", "soybean", "olive", "rapeseed", "sunflower") }
+private val INGREDIENTS by lazy { Constants.INGREDIENTS }
+private val TWO_WORD_INGREDIENTS by lazy { Constants.TWO_WORD_INGREDIENTS }
+private val THREE_WORD_INGREDIENTS by lazy { Constants.THREE_WORD_INGREDIENTS }
 
 val spannableFactory = object : Spannable.Factory() {
     override fun newSpannable(source: CharSequence?): Spannable {
@@ -210,63 +210,42 @@ fun Fragment.noCalculations(msg: String) {
  *
  * @param ingredients the ingredients to calculate the carbon footprint for
  *
- * @return the user's CO2 emissions
+ * @return the calculated CO2 emissions
  */
 fun recipeCO2Analysis(ingredients: List<Ingredient>?): BigDecimal {
     var score = BigDecimal("0.00")
 
     if (ingredients != null) {
         for (ingredient in ingredients) {
-            val re = Regex("[^%a-zA-Z0-9 ]")
-            var foodName = "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
-            Log.d("testwfwefw", foodName)
-            foodName = re.replace(foodName, " ")
-            Log.d("testwfwefw", foodName)
-            val mainFoods = foodName.split("\\s".toRegex())
-            val foodWeight = ingredient.weight
-            for (foodWord in mainFoods.indices) {
-                if ((mainFoods[foodWord] in SPECIAL_OILS && foodWord + 1 < mainFoods.size && mainFoods[foodWord + 1] == "oil" && "${mainFoods[foodWord]} oil" in FOODS) || (mainFoods[foodWord] == "sunflower" && foodWord + 2 < mainFoods.size && "sunflower seed oil" in FOODS)) {
-                    Log.d(
-                        "testwfwefw",
-                        "Food: ${mainFoods[foodWord]} || Weight: $foodWeight || CarbonWeight: ${FOODS["${mainFoods[foodWord]} oil"]!!} || IngrScore: ${
-                            BigDecimal(FOODS["${mainFoods[foodWord]} oil"]!!.toString()).multiply(
-                                BigDecimal(foodWeight.toString())
-                            )
-                        }"
-                    )
+            var allWords = "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
+            allWords = Regex("[^-./%\\w\\d\\p{L}\\p{M} ]").replace(allWords, "")
+            allWords = Regex("[-]").replace(allWords, " ")
+            val keyWords = allWords.split("\\s".toRegex())
+
+            for (word in keyWords.indices) {
+                if (keyWords[word] in TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(FOODS["${mainFoods[foodWord]} oil"].toString()).multiply(
-                            BigDecimal(foodWeight.toString())
+                        BigDecimal(INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(
+                            BigDecimal(ingredient.weight.toString())
                         )
                     )
-                    Log.d("testwfwefw", "Score: $score")
                     break
-                } else if (mainFoods[foodWord] in FOODS) {
-                    if (mainFoods[foodWord] == "vegetable" && foodWord + 1 < mainFoods.size && mainFoods[foodWord + 1] == "oil") {
-                        continue
-                    } else {
-                        Log.d(
-                            "testwfwefw",
-                            "Food: ${mainFoods[foodWord]} || Weight: $foodWeight || CarbonWeight: ${FOODS[mainFoods[foodWord]]!!} || IngrScore: ${
-                                BigDecimal(FOODS[mainFoods[foodWord]]!!.toString()).multiply(
-                                    BigDecimal(foodWeight.toString())
-                                )
-                            }"
+                } else if (keyWords[word] in THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in INGREDIENTS) {
+                    score = score.add(
+                        BigDecimal(INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(
+                            BigDecimal(ingredient.weight.toString())
                         )
-                        score = score.add(
-                            BigDecimal(FOODS[mainFoods[foodWord]].toString()).multiply(
-                                BigDecimal(foodWeight.toString())
-                            )
+                    )
+                    break
+                } else if (keyWords[word] in INGREDIENTS) {
+                    score = score.add(
+                        BigDecimal(INGREDIENTS[keyWords[word]].toString()).multiply(
+                            BigDecimal(ingredient.weight.toString())
                         )
-                        Log.d("testwfwefw", "Score: $score")
-                        break
-                    }
+                    )
+                    break
                 }
             }
-            Log.d(
-                "testwfwefw",
-                "-------------------------------------------------------------------------------------"
-            )
         }
     }
 
