@@ -147,7 +147,7 @@ class LoginActivity : AppCompatActivity() {
                                 0.0,
                                 0.0,
                                 "",
-                                "",
+                                FIREBASE_AUTH.currentUser?.photoUrl.toString(),
                                 "",
                             )
                         ref.setValue(newUser)
