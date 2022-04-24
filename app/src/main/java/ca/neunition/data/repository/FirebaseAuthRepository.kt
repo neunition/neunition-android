@@ -10,9 +10,8 @@
 package ca.neunition.data.repository
 
 import ca.neunition.ui.main.livedata.FirebaseAuthLiveData
-import ca.neunition.util.Constants.FIREBASE_AUTH
-import com.google.firebase.auth.FirebaseAuth
+import ca.neunition.util.Constants
 
 class FirebaseAuthRepository {
-    fun getFirebaseAuthState() = FirebaseAuthLiveData(FIREBASE_AUTH)
+    fun getFirebaseAuthState() = FirebaseAuthLiveData(Constants.FIREBASE_AUTH)
 }

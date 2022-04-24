@@ -56,7 +56,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
     private lateinit var ingredientTextView: AppCompatEditText
     private lateinit var weightTextView: AppCompatEditText
     private lateinit var weightDropDown: TextInputLayout
-    private val weightOptions = Constants.WEIGHT_OPTIONS
     private lateinit var autoCompleteWeights: MaterialAutoCompleteTextView
     private lateinit var addButton: AppCompatButton
 
@@ -69,11 +68,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
 
     private var manualSubmission = true
 
-    private val weightItems = Constants.WEIGHTS
     private lateinit var uploadIngredientsPhoto: AppCompatImageButton
 
     // GHG scores
-    private val foods = Constants.INGREDIENTS
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
     private var monthlyScore = BigDecimal("0.00")
@@ -119,7 +116,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         clearAllButton = view.findViewById(R.id.clear_all_button)
 
         // Drop down menu options
-        val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, weightOptions)
+        val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, Constants.WEIGHT_OPTIONS)
         (weightDropDown.editText as? AutoCompleteTextView)?.setAdapter(weightsAdapter)
 
         // Add the ingredient to the RecyclerView
@@ -171,9 +168,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                                                 ingredientWeight += element.text.toDouble().absoluteValue
                                             } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
                                                 ingredientWeight += convertFractionToDecimal(element.text).absoluteValue
-                                            } else if (elementText in weightItems && ingredientMeasurement == "") {
+                                            } else if (elementText in Constants.WEIGHTS && ingredientMeasurement == "") {
                                                 ingredientMeasurement = elementText.trim()
-                                            } else if (elementText in foods) {
+                                            } else if (elementText in Constants.INGREDIENTS) {
                                                 ingredient = elementText.trim()
                                             }
                                         }
@@ -288,8 +285,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
 
         if (selectedWeight != "") {
             for (foodWord in allFoodWords) {
-                if (foodWord in foods) {
-                    var correctCalc = BigDecimal(foods[foodWord]!!).multiply(weightOfIngr)
+                if (foodWord in Constants.INGREDIENTS) {
+                    var correctCalc = BigDecimal(Constants.INGREDIENTS[foodWord]!!).multiply(weightOfIngr)
                     correctCalc = correctCalc.setScale(5, RoundingMode.HALF_UP)
                     // Add the ingredient to the RecyclerView
                     if (ingr == "egg" || ingr == "eggs") {

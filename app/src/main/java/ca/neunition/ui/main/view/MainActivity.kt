@@ -32,18 +32,18 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import ca.neunition.R
 import ca.neunition.di.NotificationsClass
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.ViewPager2Adapter
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.Constants.FIREBASE_AUTH
+import ca.neunition.util.Constants
 import ca.neunition.util.changeStatusBarColor
 import ca.neunition.util.isOnline
 import ca.neunition.util.spannableFactory
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.imageview.ShapeableImageView
@@ -220,7 +220,7 @@ class MainActivity : AppCompatActivity() {
                     profileImageLauncher.launch(intent)
                 }
                 .setNegativeButton("remove") { _, _ ->
-                    Firebase.storage.getReference("/profile_pictures/${FIREBASE_AUTH.currentUser?.uid}")
+                    Firebase.storage.getReference("/profile_pictures/${Constants.FIREBASE_AUTH.currentUser?.uid}")
                         .delete()
                     firebaseDatabaseViewModel.updateChildValues("profileImageUrl", "")
                     profileImageView.setImageResource(R.drawable.default_profile)
@@ -259,7 +259,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun uploadProfileImage() {
         loadingDialog.startDialog()
-        val filename: String = FIREBASE_AUTH.currentUser?.uid ?: ""
+        val filename: String = Constants.FIREBASE_AUTH.currentUser?.uid ?: ""
         val ref: StorageReference = storage.getReference("/profile_pictures/$filename")
         ref.putFile(profileImageUri)
             .addOnSuccessListener {

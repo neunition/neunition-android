@@ -29,7 +29,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.widget.CompoundButtonCompat
 import ca.neunition.R
 import ca.neunition.data.remote.response.Users
-import ca.neunition.util.Constants.FIREBASE_AUTH
+import ca.neunition.util.Constants
 import ca.neunition.util.changeStatusBarColor
 import ca.neunition.util.isOnline
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -132,22 +132,22 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun firebaseAuthWithGoogle(idToken: String) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        FIREBASE_AUTH.signInWithCredential(credential)
+        Constants.FIREBASE_AUTH.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     if (task.result.additionalUserInfo?.isNewUser == true) {
                         // User data to save on Firebase Realtime Database
-                        val uid = FIREBASE_AUTH.uid ?: ""
+                        val uid = Constants.FIREBASE_AUTH.uid ?: ""
                         val ref = Firebase.database.getReference("/users/$uid")
                         val newUser =
                             Users(
-                                FIREBASE_AUTH.currentUser?.displayName,
+                                Constants.FIREBASE_AUTH.currentUser?.displayName,
                                 0.0,
                                 0.0,
                                 0.0,
                                 0.0,
                                 "",
-                                FIREBASE_AUTH.currentUser?.photoUrl.toString(),
+                                Constants.FIREBASE_AUTH.currentUser?.photoUrl.toString(),
                                 "",
                             )
                         ref.setValue(newUser)

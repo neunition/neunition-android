@@ -59,9 +59,8 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
     private lateinit var label: AppCompatTextView
     private var labelsList = arrayListOf<Int>()
-    internal val labelsArray by lazy { Constants.LABELS }
     private lateinit var checkedLabels: StringBuilder
-    private var selectedLabels = BooleanArray(labelsArray.size)
+    private var selectedLabels = BooleanArray(Constants.LABELS.size)
 
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
@@ -122,7 +121,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                 val builder = MaterialAlertDialogBuilder(requireContext())
                 builder.setTitle("Select diet/health labels")
                     .setCancelable(false)
-                    .setMultiChoiceItems(labelsArray, selectedLabels) { _, i, b ->
+                    .setMultiChoiceItems(Constants.LABELS, selectedLabels) { _, i, b ->
                         // When checkbox is selected
                         if (b) {
                             // Add position to labels list
@@ -139,7 +138,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                         val dietLabelsList = arrayListOf<String>()
                         val healthLabelsList = arrayListOf<String>()
                         for (j in 0 until labelsList.size) {
-                            val choice = labelsArray[labelsList[j]]
+                            val choice = Constants.LABELS[labelsList[j]]
                             checkedLabels.append(choice)
                             if (j != labelsList.size - 1) {
                                 checkedLabels.append(", ")

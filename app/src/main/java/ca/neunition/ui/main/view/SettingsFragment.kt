@@ -24,7 +24,7 @@ import ca.neunition.R
 import ca.neunition.di.NotificationsClass
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.Constants.FIREBASE_AUTH
+import ca.neunition.util.Constants
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -101,7 +101,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                 }
             }
 
-        userEmailPreference.title = "Email: ${FIREBASE_AUTH.currentUser?.email}"
+        userEmailPreference.title = "Email: ${Constants.FIREBASE_AUTH.currentUser?.email}"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationsPreference.onPreferenceChangeListener =
@@ -142,7 +142,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     notificationsClass.lunchCancelAlarm()
                     notificationsClass.dinnerCancelAlarm()
                 }
-                FIREBASE_AUTH.signOut()
+                Constants.FIREBASE_AUTH.signOut()
                 GoogleSignIn.getClient(requireActivity(), GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()).signOut()
                 val intent = Intent(requireActivity(), LoginActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -219,7 +219,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     internal fun deleteGoogleUser(freshGoogleIdToken: String) {
-        val user = FIREBASE_AUTH.currentUser!!
+        val user = Constants.FIREBASE_AUTH.currentUser!!
         val credential = GoogleAuthProvider.getCredential(freshGoogleIdToken, null)
         user.reauthenticate(credential)
             .addOnCompleteListener {

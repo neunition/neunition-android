@@ -30,10 +30,6 @@ import ca.neunition.data.model.api.Ingredient
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.math.BigDecimal
 
-private val INGREDIENTS by lazy { Constants.INGREDIENTS }
-private val TWO_WORD_INGREDIENTS by lazy { Constants.TWO_WORD_INGREDIENTS }
-private val THREE_WORD_INGREDIENTS by lazy { Constants.THREE_WORD_INGREDIENTS }
-
 val spannableFactory = object : Spannable.Factory() {
     override fun newSpannable(source: CharSequence?): Spannable {
         return source as Spannable
@@ -223,23 +219,23 @@ fun recipeCO2Analysis(ingredients: List<Ingredient>?): BigDecimal {
             val keyWords = allWords.split("\\s".toRegex())
 
             for (word in keyWords.indices) {
-                if (keyWords[word] in TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in INGREDIENTS) {
+                if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(
+                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(
                             BigDecimal(ingredient.weight.toString())
                         )
                     )
                     break
-                } else if (keyWords[word] in THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in INGREDIENTS) {
+                } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(
+                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(
                             BigDecimal(ingredient.weight.toString())
                         )
                     )
                     break
-                } else if (keyWords[word] in INGREDIENTS) {
+                } else if (keyWords[word] in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(INGREDIENTS[keyWords[word]].toString()).multiply(
+                        BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(
                             BigDecimal(ingredient.weight.toString())
                         )
                     )
