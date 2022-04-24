@@ -30,9 +30,7 @@ import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.BigDecimalAdapter
 import ca.neunition.ui.main.adapter.RecipeAdapter
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.Constants
-import ca.neunition.util.hideKeyboard
-import ca.neunition.util.noCalculations
+import ca.neunition.util.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -45,8 +43,6 @@ import java.math.RoundingMode
 
 class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
-
-    private val foods by lazy { Constants.MEALS }
 
     // Edamam API
     private lateinit var edamamViewModel: EdamamViewModel
@@ -66,6 +62,11 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     internal val labelsArray by lazy { Constants.LABELS }
     private lateinit var checkedLabels: StringBuilder
     private var selectedLabels = BooleanArray(labelsArray.size)
+
+    private var dailyScore = BigDecimal("0.00")
+    private var weeklyScore = BigDecimal("0.00")
+    private var monthlyScore = BigDecimal("0.00")
+    private var yearlyScore = BigDecimal("0.00")
 
     private var recipesChanged = ""
     private lateinit var recipeRecyclerView: RecyclerView
@@ -90,10 +91,13 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
         recipeRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
         recyclerViewLayoutManager = GridLayoutManager(requireActivity(), 2)
 
-        firebaseDatabaseViewModel =
-            ViewModelProvider(this).get(FirebaseDatabaseViewModel::class.java)
+        firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { users ->
             if (users != null) {
+                dailyScore = BigDecimal(users.daily.toString())
+                weeklyScore = BigDecimal(users.weekly.toString())
+                monthlyScore = BigDecimal(users.monthly.toString())
+                yearlyScore = BigDecimal(users.yearly.toString())
                 requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
                     run {
                         if (recipesChanged != users.recipeJsonData) {
@@ -198,37 +202,12 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                 )
 
                 edamamViewModel.getEdamamResultLiveData().observe(viewLifecycleOwner) {
-                    if (it.hits!!.isEmpty()) {
+                    if (it.hits == null || it.hits.isEmpty()) {
                         loadingDialog.dismissDialog()
                         noCalculations("Sorry, we couldn't find any recipes for your search.")
                     } else {
                         for (i in it.hits.indices) {
-                            // Calculate GHG emissions for the user's food
-                            var score = BigDecimal("0.00")
-                            // Get the list of ingredients for the recipe
-                            val ingredients: List<ca.neunition.data.model.api.Ingredient>? =
-                                it.hits[i].recipe?.ingredients
-                            if (ingredients != null) {
-                                for (ingredient in ingredients) {
-                                    val re = Regex("[^a-zA-Z ]")
-                                    var foodName =
-                                        "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
-                                    foodName = re.replace(foodName, "")
-                                    val mainFoods = foodName.split("\\s".toRegex())
-                                    val foodWeight = ingredient.weight
-                                    for (foodWord in mainFoods) {
-                                        if (foodWord in foods) {
-                                            score = score.add(
-                                                BigDecimal(foods[foodWord]!!.toString()).multiply(
-                                                    BigDecimal(foodWeight.toString())
-                                                )
-                                            )
-                                            break
-                                        }
-                                    }
-                                }
-                            }
-                            score = score.setScale(2, RoundingMode.HALF_UP)
+                            val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(2, RoundingMode.HALF_UP)
                             val item = RecipeCard(
                                 it.hits[i].recipe?.image,
                                 it.hits[i].recipe?.label,
@@ -274,7 +253,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                 recipeRecyclerView.adapter?.notifyDataSetChanged()
                 firebaseDatabaseViewModel.updateChildValues("recipeJsonData", "")
 
-                edamamViewModel = ViewModelProvider(this).get(EdamamViewModel::class.java)
+                edamamViewModel = ViewModelProvider(this)[EdamamViewModel::class.java]
                 edamamViewModel.getEdamamRecipes(
                     "public",
                     false,
@@ -292,32 +271,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                         noCalculations("Sorry, we couldn't find any recipes for your search.")
                     } else {
                         for (i in it.hits.indices) {
-                            // Calculate GHG emissions for the user's food
-                            var score = BigDecimal("0.00")
-                            // Get the list of ingredients for the recipe
-                            val ingredients: List<ca.neunition.data.model.api.Ingredient>? =
-                                it.hits[i].recipe?.ingredients
-                            if (ingredients != null) {
-                                for (ingredient in ingredients) {
-                                    val re = Regex("[^a-zA-Z ]")
-                                    var foodName =
-                                        "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
-                                    foodName = re.replace(foodName, "")
-                                    val mainFoods = foodName.split("\\s".toRegex())
-                                    val foodWeight = ingredient.weight
-                                    for (foodWord in mainFoods) {
-                                        if (foodWord in foods) {
-                                            score = score.add(
-                                                BigDecimal(foods[foodWord]!!.toString()).multiply(
-                                                    BigDecimal(foodWeight.toString())
-                                                )
-                                            )
-                                            break
-                                        }
-                                    }
-                                }
-                            }
-                            score = score.setScale(2, RoundingMode.HALF_UP)
+                            val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(2, RoundingMode.HALF_UP)
                             val item = RecipeCard(
                                 it.hits[i].recipe?.image,
                                 it.hits[i].recipe?.label,
@@ -357,6 +311,45 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             recipesList[position].recipeTitle.toString(),
             recipesList[position].recipeUrl.toString()
         ).display(childFragmentManager)
+    }
+
+    /**
+     * Display a dialog to show the name of the food and the estimated GHG emissions score for the
+     * food.
+     *
+     * @param meal the name of the food
+     * @param score the GHG emissions score for the food
+     */
+    private fun showFinalCalc(meal: String, score: BigDecimal) {
+        val mealConfirmBuilder = MaterialAlertDialogBuilder(requireContext())
+        mealConfirmBuilder.setCancelable(false)
+        mealConfirmBuilder.setMessage("Food: $meal\nGHG Emissions: $score kg of CO₂-eq")
+            .setPositiveButton(
+                "submit"
+            ) { _, _ ->
+                if (isOnline(requireActivity().applicationContext)) {
+                    dailyScore = dailyScore.add(score)
+                    weeklyScore = weeklyScore.add(score)
+                    monthlyScore = monthlyScore.add(score)
+                    yearlyScore = yearlyScore.add(score)
+                    firebaseDatabaseViewModel.updateChildValues("daily", dailyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValues("weekly", weeklyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValues("monthly", monthlyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValues("yearly", yearlyScore.toDouble())
+                } else {
+                    showFinalCalc(meal, score)
+                    Toast.makeText(
+                        requireActivity(),
+                        "No internet connection found. Please check your connection.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .setNegativeButton(
+                "cancel",
+                DialogInterface.OnClickListener { _, _ -> return@OnClickListener }
+            )
+        mealConfirmBuilder.show()
     }
 
     private fun saveData() {
