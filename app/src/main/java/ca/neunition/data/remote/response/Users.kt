@@ -17,5 +17,5 @@ data class Users(
     val yearly: Double = 0.0,
     val previousRecords: String = "",
     val profileImageUrl: String = "",
-    val recipeJsonData: String = ""
+    val recipesJsonData: String = ""
 )

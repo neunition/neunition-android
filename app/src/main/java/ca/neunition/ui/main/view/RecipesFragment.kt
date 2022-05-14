@@ -1,7 +1,9 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * Allow the user to search for recipes that also shows their respective GHG emissions.
+ * Allow the user to search for recipes that will also shows their respective GHG emissions. User
+ * can add GHG emissions of a specific recipe to their current day, current week, current month,
+ * and current year scores.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -23,12 +25,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import ca.neunition.EdamamViewModel
 import ca.neunition.R
 import ca.neunition.data.remote.response.RecipeCard
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.BigDecimalAdapter
 import ca.neunition.ui.main.adapter.RecipeAdapter
+import ca.neunition.ui.main.viewmodel.EdamamViewModel
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
 import ca.neunition.util.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -38,16 +40,16 @@ import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.*
+import kotlin.collections.ArrayList
 
 class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
-
-    // Edamam API
     private lateinit var edamamViewModel: EdamamViewModel
 
-    // Loading screen
     private lateinit var loadingDialog: LoadingDialog
 
     private lateinit var searchRecipeEditTextView: AppCompatEditText
@@ -57,7 +59,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private var dietLabelUrl = arrayOf<String>()
     private var healthLabelUrl = arrayOf<String>()
 
-    private lateinit var label: AppCompatTextView
+    private lateinit var labelsTextView: AppCompatTextView
     private var labelsList = arrayListOf<Int>()
     private lateinit var checkedLabels: StringBuilder
     private var selectedLabels = BooleanArray(Constants.LABELS.size)
@@ -67,18 +69,15 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
     private var monthlyScore = BigDecimal("0.00")
     private var yearlyScore = BigDecimal("0.00")
 
-    private var recipesChanged = ""
-    private lateinit var recipeRecyclerView: RecyclerView
+    private var currentJSONObject = ""
+    private lateinit var recipesRecyclerView: RecyclerView
     private var recipesList = ArrayList<RecipeCard>()
-    private lateinit var adapter: RecipeAdapter
-    private lateinit var recyclerViewLayoutManager: RecyclerView.LayoutManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_recipes, container, false)
     }
 
@@ -87,87 +86,124 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
         loadingDialog = LoadingDialog(requireActivity())
 
-        recipeRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
-        recyclerViewLayoutManager = GridLayoutManager(requireActivity(), 2)
+        searchRecipeEditTextView = view.findViewById(R.id.search_recipe_edit_text_view)
+        searchRecipeButton = view.findViewById(R.id.search_recipe_button)
+        randomRecipeButton = view.findViewById(R.id.random_recipe_button)
+        labelsTextView = view.findViewById(R.id.select_label_text_view)
+        recipesRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
 
-        firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
+        firebaseDatabaseViewModel = ViewModelProvider(requireActivity())[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { users ->
             if (users != null) {
                 dailyScore = BigDecimal(users.daily.toString())
                 weeklyScore = BigDecimal(users.weekly.toString())
                 monthlyScore = BigDecimal(users.monthly.toString())
                 yearlyScore = BigDecimal(users.yearly.toString())
-                requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
-                    run {
-                        if (recipesChanged != users.recipeJsonData) {
-                            loadData(users.recipeJsonData)
-                            buildRecyclerView()
-                            recipesChanged = users.recipeJsonData
-                        } else if (users.recipeJsonData == "") {
-                            buildRecyclerView()
-                        }
-                    }
-                })
+                if (currentJSONObject != users.recipesJsonData) {
+                    if (users.recipesJsonData != "") recipesList = jsonAdapter.fromJson(users.recipesJsonData)!!
+                    initRecyclerView()
+                    currentJSONObject = users.recipesJsonData
+                } else if (users.recipesJsonData == "") {
+                    initRecyclerView()
+                }
             }
         }
 
-        searchRecipeEditTextView = view.findViewById(R.id.search_recipe_edit_text_view)
-        searchRecipeButton = view.findViewById(R.id.search_recipe_button)
-        randomRecipeButton = view.findViewById(R.id.random_recipe_button)
+        edamamViewModel = ViewModelProvider(requireActivity())[EdamamViewModel::class.java]
+        edamamViewModel.recipeSearchResults.observe(viewLifecycleOwner) {
+            when {
+                it.hits == null -> {
+                    loadingDialog.dismissDialog()
+                    noCalculations("Error", "Oops, something went wrong. Please try again later.")
+                }
+                it.hits.isEmpty() -> {
+                    loadingDialog.dismissDialog()
+                    noCalculations("", "Sorry, we couldn't find any recipes for your search.")
+                }
+                else -> {
+                    for (i in it.hits.indices) {
+                        val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(
+                            2,
+                            RoundingMode.HALF_UP
+                        )
+                        val item = RecipeCard(
+                            it.hits[i].recipe?.image,
+                            it.hits[i].recipe?.label,
+                            score,
+                            it.hits[i].recipe?.url
+                        )
+                        recipesList += item
+                    }
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        firebaseDatabaseViewModel.updateChildValues("recipesJsonData", jsonAdapter.toJson(recipesList))
+                        loadingDialog.dismissDialog()
+                    }
+                }
+            }
+        }
 
-        label = view.findViewById(R.id.select_label_text_view)
-        label.setOnClickListener(object : View.OnClickListener {
+        labelsTextView.setOnClickListener(object : View.OnClickListener {
             override fun onClick(view: View) {
                 val builder = MaterialAlertDialogBuilder(requireContext())
-                builder.setTitle("Select diet/health labels")
-                    .setCancelable(false)
-                    .setMultiChoiceItems(Constants.LABELS, selectedLabels) { _, i, b ->
+                builder.apply {
+                    setTitle("Select diet/health labels")
+                    setCancelable(false)
+                    setMultiChoiceItems(Constants.LABELS, selectedLabels) { _, i, b ->
                         // When checkbox is selected
                         if (b) {
                             // Add position to labels list
-                            labelsList.add(i)
-                            labelsList.sort()
+                            labelsList.apply {
+                                add(i)
+                                sort()
+                            }
                         } else {
                             // When checkbox is unselected remove position from labels list
                             labelsList.remove(i)
                         }
                     }
-
-                    .setPositiveButton("ok", DialogInterface.OnClickListener { _, _ ->
+                    setPositiveButton("ok", DialogInterface.OnClickListener { _, _ ->
                         checkedLabels = StringBuilder()
+
                         val dietLabelsList = arrayListOf<String>()
                         val healthLabelsList = arrayListOf<String>()
+
                         for (j in 0 until labelsList.size) {
-                            val choice = Constants.LABELS[labelsList[j]]
+                            var choice = Constants.LABELS[labelsList[j]]
+
                             checkedLabels.append(choice)
                             if (j != labelsList.size - 1) {
                                 checkedLabels.append(", ")
                             }
-                            if (choice == "balanced" || choice == "high-fiber" || choice == "high-protein" || choice == "low-carb" || choice == "low-fat" || choice == "low-sodium") {
+
+                            choice = choice.lowercase()
+                            if (choice in Constants.DIET_PARAMETERS) {
                                 dietLabelsList.add(choice)
                             } else {
                                 healthLabelsList.add(choice)
                             }
                         }
-                        label.text = checkedLabels.toString()
+
+                        labelsTextView.text = checkedLabels.toString()
                         dietLabelUrl = dietLabelsList.toTypedArray()
                         healthLabelUrl = healthLabelsList.toTypedArray()
+
                         return@OnClickListener
                     })
-
-                    .setNegativeButton("clear", DialogInterface.OnClickListener { _, _ ->
+                    setNegativeButton("clear", DialogInterface.OnClickListener { _, _ ->
                         for (j in selectedLabels.indices) {
                             selectedLabels[j] = false
                         }
+
                         labelsList.clear()
                         checkedLabels = StringBuilder()
-                        label.text = ""
+                        labelsTextView.text = ""
                         dietLabelUrl = arrayOf()
                         healthLabelUrl = arrayOf()
+
                         return@OnClickListener
                     })
-
-                builder.show()
+                    show()
+                }
             }
         })
 
@@ -176,62 +212,25 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             if (recipeName.isEmpty()) {
                 Toast.makeText(
                     requireActivity(),
-                    "Please enter a query in the search field",
+                    "Please enter a query in the search field.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            } else if (!isOnline(requireActivity().applicationContext)) {
+                Toast.makeText(
+                    requireActivity(),
+                    "No internet connection found. Please check your connection.",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@setOnClickListener
             } else {
-                this.requireView().hideKeyboard()
-                loadingDialog.startDialog()
-
-                recipesList.clear()
-                recipeRecyclerView.adapter?.notifyDataSetChanged()
-                firebaseDatabaseViewModel.updateChildValues("recipeJsonData", "")
-
-                edamamViewModel = ViewModelProvider(this)[EdamamViewModel::class.java]
-                edamamViewModel.getEdamamRecipes(
-                    "public",
-                    false,
-                    Constants.EDAMAM_API_ID,
-                    Constants.EDAMAM_API_KEY,
-                    false,
+                processingGetRequest()
+                edamamViewModel.setQueries(
                     recipeName,
+                    false,
                     if (dietLabelUrl.isEmpty()) null else dietLabelUrl,
                     if (healthLabelUrl.isEmpty()) null else healthLabelUrl
                 )
-
-                edamamViewModel.getEdamamResultLiveData().observe(viewLifecycleOwner) {
-                    if (it.hits == null || it.hits.isEmpty()) {
-                        loadingDialog.dismissDialog()
-                        noCalculations("Sorry, we couldn't find any recipes for your search.")
-                    } else {
-                        for (i in it.hits.indices) {
-                            val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(2, RoundingMode.HALF_UP)
-                            val item = RecipeCard(
-                                it.hits[i].recipe?.image,
-                                it.hits[i].recipe?.label,
-                                score,
-                                it.hits[i].recipe?.url
-                            )
-                            recipesList += item
-                            requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
-                                run {
-                                    recipeRecyclerView.adapter = adapter
-                                    recipeRecyclerView.adapter?.notifyDataSetChanged()
-                                }
-                            })
-                        }
-                        lifecycleScope.launch(Dispatchers.Default) {
-                            saveData()
-                        }
-                        loadingDialog.dismissDialog()
-                    }
-                }
-
-                edamamViewModel.getStatusLiveData().observe(viewLifecycleOwner) {
-                    loadingDialog.dismissDialog()
-                    noCalculations(it)
-                }
             }
         }
 
@@ -239,65 +238,56 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
             if (dietLabelUrl.isEmpty() && healthLabelUrl.isEmpty()) {
                 Toast.makeText(
                     requireActivity(),
-                    "Please select at least one diet/health label",
+                    "Please select at least one diet/health label.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            } else if (!isOnline(requireActivity().applicationContext)) {
+                Toast.makeText(
+                    requireActivity(),
+                    "No internet connection found. Please check your connection.",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@setOnClickListener
             } else {
-                this.requireView().hideKeyboard()
-                loadingDialog.startDialog()
-
+                processingGetRequest()
                 searchRecipeEditTextView.setText("")
-                recipesList.clear()
-                recipeRecyclerView.adapter?.notifyDataSetChanged()
-                firebaseDatabaseViewModel.updateChildValues("recipeJsonData", "")
-
-                edamamViewModel = ViewModelProvider(this)[EdamamViewModel::class.java]
-                edamamViewModel.getEdamamRecipes(
-                    "public",
-                    false,
-                    Constants.EDAMAM_API_ID,
-                    Constants.EDAMAM_API_KEY,
-                    true,
+                edamamViewModel.setQueries(
                     "",
+                    true,
                     if (dietLabelUrl.isEmpty()) null else dietLabelUrl,
                     if (healthLabelUrl.isEmpty()) null else healthLabelUrl
                 )
-
-                edamamViewModel.getEdamamResultLiveData().observe(viewLifecycleOwner) {
-                    if (it.hits!!.isEmpty()) {
-                        loadingDialog.dismissDialog()
-                        noCalculations("Sorry, we couldn't find any recipes for your search.")
-                    } else {
-                        for (i in it.hits.indices) {
-                            val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(2, RoundingMode.HALF_UP)
-                            val item = RecipeCard(
-                                it.hits[i].recipe?.image,
-                                it.hits[i].recipe?.label,
-                                score,
-                                it.hits[i].recipe?.url
-                            )
-                            recipesList += item
-                            requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
-                                run {
-                                    recipeRecyclerView.adapter = adapter
-                                    recipeRecyclerView.adapter?.notifyDataSetChanged()
-                                }
-                            })
-                        }
-                        lifecycleScope.launch(Dispatchers.Default) {
-                            saveData()
-                        }
-                        loadingDialog.dismissDialog()
-                    }
-                }
-
-                edamamViewModel.getStatusLiveData().observe(viewLifecycleOwner) {
-                    loadingDialog.dismissDialog()
-                    noCalculations(it)
-                }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        edamamViewModel.cancelJobs()
+    }
+
+    /**
+     * Initialize the RecyclerView.
+     */
+    private fun initRecyclerView() {
+        recipesRecyclerView.apply {
+            adapter = RecipeAdapter(recipesList, this@RecipesFragment)
+            layoutManager = GridLayoutManager(requireActivity(), 2)
+            adapter?.notifyDataSetChanged()
+        }
+    }
+
+    /**
+     * Hide the keyboard, show a loading spinner, and clear the current list of recipes when a new
+     * GET request is being made.
+     */
+    private fun processingGetRequest() {
+        this.requireView().hideKeyboard()
+        loadingDialog.startDialog()
+        recipesList.clear()
+        recipesRecyclerView.adapter?.notifyDataSetChanged()
+        firebaseDatabaseViewModel.updateChildValues("recipesJsonData", "")
     }
 
     /**
@@ -314,18 +304,17 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
 
     /**
      * Display a dialog to show the name of the food and the estimated GHG emissions score for the
-     * food.
+     * food to be added to the user's total periodical GHG emissions.
      *
      * @param meal the name of the food
      * @param score the GHG emissions score for the food
      */
-    private fun showFinalCalc(meal: String, score: BigDecimal) {
+    private fun addGHGEmissions(meal: String, score: BigDecimal) {
         val mealConfirmBuilder = MaterialAlertDialogBuilder(requireContext())
-        mealConfirmBuilder.setCancelable(false)
-        mealConfirmBuilder.setMessage("Food: $meal\nGHG Emissions: $score kg of CO₂-eq")
-            .setPositiveButton(
-                "submit"
-            ) { _, _ ->
+        mealConfirmBuilder.apply {
+            setCancelable(false)
+            setMessage("Food: $meal\nGHG Emissions: $score kg of CO₂-eq")
+            setPositiveButton("submit") { _, _ ->
                 if (isOnline(requireActivity().applicationContext)) {
                     dailyScore = dailyScore.add(score)
                     weeklyScore = weeklyScore.add(score)
@@ -336,7 +325,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                     firebaseDatabaseViewModel.updateChildValues("monthly", monthlyScore.toDouble())
                     firebaseDatabaseViewModel.updateChildValues("yearly", yearlyScore.toDouble())
                 } else {
-                    showFinalCalc(meal, score)
+                    addGHGEmissions(meal, score)
                     Toast.makeText(
                         requireActivity(),
                         "No internet connection found. Please check your connection.",
@@ -344,34 +333,49 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
                     ).show()
                 }
             }
-            .setNegativeButton(
+            setNegativeButton(
                 "cancel",
                 DialogInterface.OnClickListener { _, _ -> return@OnClickListener }
             )
-        mealConfirmBuilder.show()
-    }
-
-    private fun saveData() {
-        val moshi = Moshi.Builder().add(BigDecimalAdapter).add(KotlinJsonAdapterFactory()).build()
-        val listMyData = Types.newParameterizedType(List::class.java, RecipeCard::class.java)
-        val jsonAdapter: JsonAdapter<ArrayList<RecipeCard>> = moshi.adapter(listMyData)
-        val json = jsonAdapter.toJson(recipesList)
-        firebaseDatabaseViewModel.updateChildValues("recipeJsonData", json)
-    }
-
-    private fun loadData(json: String) {
-        if (json != "") {
-            val moshi =
-                Moshi.Builder().add(BigDecimalAdapter).add(KotlinJsonAdapterFactory()).build()
-            val type = Types.newParameterizedType(List::class.java, RecipeCard::class.java)
-            val jsonAdapter: JsonAdapter<ArrayList<RecipeCard>> = moshi.adapter(type)
-            recipesList = jsonAdapter.fromJson(json)!!
+            show()
         }
     }
 
-    private fun buildRecyclerView() {
-        adapter = RecipeAdapter(recipesList, this)
-        recipeRecyclerView.layoutManager = recyclerViewLayoutManager
-        recipeRecyclerView.adapter = adapter
+    /**
+     * Let the user know that it could not calculate the CO2 emissions for their input.
+     *
+     * @param title Title of the dialog to be presented
+     * @param message Message to show the user
+     */
+    private fun noCalculations(title: String, message: String) {
+        val noCalcsBuilder = MaterialAlertDialogBuilder(this.requireActivity())
+        noCalcsBuilder.apply {
+            setTitle(title)
+            setMessage(message)
+            setCancelable(false)
+            setPositiveButton("ok") { dialog, _ ->
+                dialog.dismiss()
+            }
+            create()
+            show()
+        }
+        return
+    }
+
+    companion object {
+        private val moshi: Moshi by lazy {
+            Moshi.Builder()
+                .add(BigDecimalAdapter)
+                .addLast(KotlinJsonAdapterFactory())
+                .build()
+        }
+
+        private val type: Type by lazy {
+            Types.newParameterizedType(List::class.java, RecipeCard::class.java)
+        }
+
+        private val jsonAdapter: JsonAdapter<ArrayList<RecipeCard>> by lazy {
+            moshi.adapter(type)
+        }
     }
 }

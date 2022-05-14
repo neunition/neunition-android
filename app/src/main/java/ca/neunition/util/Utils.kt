@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * Kotlin extension functions file for functions to be used be anywhere in the program.
+ * Kotlin extension functions file for functions to be used be anywhere in the app.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -24,10 +24,8 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.fragment.app.Fragment
 import ca.neunition.R
 import ca.neunition.data.model.api.Ingredient
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.math.BigDecimal
 
 val spannableFactory = object : Spannable.Factory() {
@@ -149,56 +147,6 @@ fun scoreColourChange(
     }
 
     return scoreSpannable
-}
-
-fun recipeCardScore(
-    context: Context,
-    score: BigDecimal
-): SpannableString {
-    val scoreSpannable = SpannableString(score.toString())
-
-    if (score <= BigDecimal("1.08")) {
-        scoreSpannable.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(context, R.color.greenScore)),
-            0,
-            score.toString().length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    } else if (score > BigDecimal("1.08") && score <= BigDecimal("1.61")) {
-        scoreSpannable.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(context, R.color.yellowScore)),
-            0,
-            score.toString().length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    } else {
-        scoreSpannable.setSpan(
-            ForegroundColorSpan(ContextCompat.getColor(context, R.color.redScore)),
-            0,
-            score.toString().length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
-
-    return scoreSpannable
-}
-
-/**
- * Let the user know that it could not calculate the CO2 emissions for their food.
- *
- * @param msg the error message to be presented
- */
-fun Fragment.noCalculations(msg: String) {
-    // Display a dialog to the user that the app wasn't able to calculate their food's CO2 emissions
-    val noCalcsBuilder = MaterialAlertDialogBuilder(this.requireActivity()).apply {
-        setMessage(msg)
-        setCancelable(false)
-        setPositiveButton("ok") { dialog, _ ->
-            dialog.dismiss()
-        }
-    }
-    noCalcsBuilder.create().show()
-    return
 }
 
 /**

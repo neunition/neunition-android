@@ -22,6 +22,24 @@ object Constants {
     val EDAMAM_API_ID: String by lazy { BuildConfig.EDAMAM_API_ID }
     val EDAMAM_API_KEY: String by lazy { BuildConfig.EDAMAM_API_KEY }
 
+    val BREAKFAST_CHANNEL_ID: String by lazy { "BREAKFAST_NOTIFICATION" }
+    val BREAKFAST_NOTIFICATION_NAME: String by lazy { "Breakfast Reminder" }
+    val BREAKFAST_NOTIFICATION_ID: Int by lazy { 111 }
+    val BREAKFAST_CONTEXT_TEXT: String by lazy { "There's nothing like starting the day with an environmentally friendly breakfast. Let's record the GHG emissions for what you ate!" }
+    val BREAKFAST_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for breakfast." }
+
+    val LUNCH_CHANNEL_ID: String by lazy { "LUNCH_NOTIFICATION" }
+    val LUNCH_NOTIFICATION_NAME: String by lazy { "Lunch Reminder" }
+    val LUNCH_NOTIFICATION_ID: Int by lazy { 222 }
+    val LUNCH_CONTEXT_TEXT: String by lazy { "You've been working very hard. Take a break and recharge with a meal that helps fight climate change! Remember to record your GHG emissions for lunch." }
+    val LUNCH_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for lunch." }
+
+    val DINNER_CHANNEL_ID: String by lazy { "DINNER_NOTIFICATION" }
+    val DINNER_NOTIFICATION_NAME: String by lazy { "Dinner Reminder" }
+    val DINNER_NOTIFICATION_ID: Int by lazy { 333 }
+    val DINNER_CONTEXT_TEXT: String by lazy { "Is it? Not sure, but hopefully it's filled with ingredients that can save our planet! Just need to record your GHG emissions one more time before the day ends!" }
+    val DINNER_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for dinner." }
+
     // CO2 scores for each ingredient per gram
     val INGREDIENTS: HashMap<String, Double> by lazy {
         hashMapOf(
@@ -860,43 +878,55 @@ object Constants {
 
     val LABELS: Array<String> by lazy {
         arrayOf(
-            "alcohol-free",
+            "Alcohol-Cocktail",
+            "Alcohol-Free",
+            "Balanced",
+            "Celery-Free",
+            "Crustacean-Free",
+            "Dairy-Free",
+            "Egg-Free",
+            "Fish-Free",
+            "Gluten-Free",
+            "High-Fiber",
+            "High-Protein",
+            "Immuno-Supportive",
+            "Keto-Friendly",
+            "Kidney-Friendly",
+            "Kosher",
+            "Low-Carb",
+            "Low-Fat",
+            "Low-Potassium",
+            "Low-Sodium",
+            "Low-Sugar",
+            "Lupine-Free",
+            "Mediterranean",
+            "Mollusk-Free",
+            "Mustard-Free",
+            "Paleo",
+            "Peanut-Free",
+            "Pescatarian",
+            "Pork-Free",
+            "Red-Meat-Free",
+            "Sesame-Free",
+            "Shellfish-Free",
+            "Soy-Free",
+            "Sugar-Conscious",
+            "Sulfite-Free",
+            "Tree-Nut-Free",
+            "Vegan",
+            "Vegetarian",
+            "Wheat-Free"
+        )
+    }
+
+    val DIET_PARAMETERS: HashSet<String> by lazy {
+        hashSetOf(
             "balanced",
-            "celery-free",
-            "crustacean-free",
-            "dairy-free",
-            "egg-free",
-            "fish-free",
-            "fodmap-free",
-            "gluten-free",
             "high-fiber",
             "high-protein",
-            "immuno-supportive",
-            "keto-friendly",
-            "kidney-friendly",
-            "kosher",
             "low-carb",
             "low-fat",
-            "low-fat-abs",
-            "low-potassium",
-            "low-sodium",
-            "low-sugar",
-            "lupine-free",
-            "mustard-free",
-            "no-oil-added",
-            "paleo",
-            "peanut-free",
-            "pescatarian",
-            "pork-free",
-            "red-meat-free",
-            "sesame-free",
-            "shellfish-free",
-            "soy-free",
-            "sugar-conscious",
-            "tree-nut-free",
-            "vegan",
-            "vegetarian",
-            "wheat-free"
+            "low-sodium"
         )
     }
 
