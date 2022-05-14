@@ -21,6 +21,7 @@ import androidx.annotation.RequiresApi
 import ca.neunition.data.receiver.BreakfastAlarmReceiver
 import ca.neunition.data.receiver.DinnerAlarmReceiver
 import ca.neunition.data.receiver.LunchAlarmReceiver
+import ca.neunition.util.Constants
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.*
 import javax.inject.Inject
@@ -29,6 +30,9 @@ import javax.inject.Singleton
 @RequiresApi(Build.VERSION_CODES.O)
 @Singleton
 class NotificationsClass @Inject constructor(@ApplicationContext private val context: Context) {
+    private val notificationManager: NotificationManager = context
+        .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
     private lateinit var breakfastCalendar: Calendar
     private var breakfastAlarmMgr: AlarmManager? = null
     private lateinit var breakfastAlarmIntent: PendingIntent
@@ -66,26 +70,23 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         val importance = NotificationManager.IMPORTANCE_DEFAULT
 
         val breakfastChannel = NotificationChannel(
-            BREAKFAST_CHANNEL_ID,
-            BREAKFAST_NOTIFICATION_NAME,
+            Constants.BREAKFAST_CHANNEL_ID,
+            Constants.BREAKFAST_NOTIFICATION_NAME,
             importance
-        ).apply { description = CHANNEL_DESCRIPTION }
+        ).apply { description = Constants.BREAKFAST_CHANNEL_DESCRIPTION }
 
         val lunchChannel = NotificationChannel(
-            LUNCH_CHANNEL_ID,
-            LUNCH_NOTIFICATION_NAME,
+            Constants.LUNCH_CHANNEL_ID,
+            Constants.LUNCH_NOTIFICATION_NAME,
             importance
-        ).apply { description = CHANNEL_DESCRIPTION }
+        ).apply { description = Constants.LUNCH_CHANNEL_DESCRIPTION }
 
         val dinnerChannel = NotificationChannel(
-            DINNER_CHANNEL_ID,
-            DINNER_NOTIFICATION_NAME,
+            Constants.DINNER_CHANNEL_ID,
+            Constants.DINNER_NOTIFICATION_NAME,
             importance
-        ).apply { description = CHANNEL_DESCRIPTION }
+        ).apply { description = Constants.DINNER_CHANNEL_DESCRIPTION }
 
-        // Register the channel with the system
-        val notificationManager: NotificationManager = context
-            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(breakfastChannel)
         notificationManager.createNotificationChannel(lunchChannel)
         notificationManager.createNotificationChannel(dinnerChannel)
@@ -110,7 +111,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         ).let { intent ->
             PendingIntent.getBroadcast(
                 context,
-                BREAKFAST_NOTIFICATION_ID,
+                Constants.BREAKFAST_NOTIFICATION_ID,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
@@ -143,7 +144,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         ).let { intent ->
             PendingIntent.getBroadcast(
                 context,
-                LUNCH_NOTIFICATION_ID,
+                Constants.LUNCH_NOTIFICATION_ID,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
@@ -176,7 +177,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         ).let { intent ->
             PendingIntent.getBroadcast(
                 context,
-                DINNER_NOTIFICATION_ID,
+                Constants.DINNER_NOTIFICATION_ID,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
@@ -192,14 +193,17 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
 
     fun breakfastCancelAlarm() {
         breakfastAlarmMgr?.cancel(breakfastAlarmIntent)
+        notificationManager.cancel(Constants.BREAKFAST_NOTIFICATION_ID)
     }
 
     fun lunchCancelAlarm() {
         lunchAlarmMgr?.cancel(lunchAlarmIntent)
+        notificationManager.cancel(Constants.LUNCH_NOTIFICATION_ID)
     }
 
     fun dinnerCancelAlarm() {
         dinnerAlarmMgr?.cancel(dinnerAlarmIntent)
+        notificationManager.cancel(Constants.DINNER_NOTIFICATION_ID)
     }
 
     fun breakfastSwitchPref(switch: Boolean) {
@@ -224,21 +228,5 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         } else {
             dinnerCancelAlarm()
         }
-    }
-
-    companion object {
-        private const val CHANNEL_DESCRIPTION = "Channel for notifications alarm manager"
-
-        private const val BREAKFAST_CHANNEL_ID = "BREAKFAST_NOTIFICATION"
-        private const val BREAKFAST_NOTIFICATION_NAME = "Breakfast Reminder"
-        private const val BREAKFAST_NOTIFICATION_ID = 111
-
-        private const val LUNCH_CHANNEL_ID = "LUNCH_NOTIFICATION"
-        private const val LUNCH_NOTIFICATION_NAME = "Lunch Reminder"
-        private const val LUNCH_NOTIFICATION_ID = 222
-
-        private const val DINNER_CHANNEL_ID = "DINNER_NOTIFICATION"
-        private const val DINNER_NOTIFICATION_NAME = "Dinner Reminder"
-        private const val DINNER_NOTIFICATION_ID = 333
     }
 }

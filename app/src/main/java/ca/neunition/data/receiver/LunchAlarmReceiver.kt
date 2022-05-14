@@ -18,6 +18,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import ca.neunition.R
 import ca.neunition.ui.main.view.SplashActivity
+import ca.neunition.util.Constants
 
 class LunchAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -32,26 +33,19 @@ class LunchAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, Constants.LUNCH_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.lunch_notification))
-            .setContentText(CONTEXT_TEXT)
+            .setContentText(Constants.LUNCH_CONTEXT_TEXT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(CONTEXT_TEXT))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(Constants.LUNCH_CONTEXT_TEXT))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
             // notificationId is a unique int for each notification that you must define
-            notify(NOTIFICATION_ID, builder.build())
+            notify(Constants.LUNCH_NOTIFICATION_ID, builder.build())
         }
-    }
-
-    companion object {
-        private const val CHANNEL_ID = "LUNCH_NOTIFICATION"
-        private const val NOTIFICATION_ID = 222
-        private const val CONTEXT_TEXT =
-            "You've been working very hard. Take a break and recharge with a meal that helps fight climate change! Remember to record your GHG emissions for lunch."
     }
 }

@@ -18,6 +18,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import ca.neunition.R
 import ca.neunition.ui.main.view.SplashActivity
+import ca.neunition.util.Constants
 
 class BreakfastAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -32,26 +33,19 @@ class BreakfastAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, Constants.BREAKFAST_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.breakfast_notification))
-            .setContentText(CONTEXT_TEXT)
+            .setContentText(Constants.BREAKFAST_CONTEXT_TEXT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(CONTEXT_TEXT))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(Constants.BREAKFAST_CONTEXT_TEXT))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
             // notificationId is a unique int for each notification that you must define
-            notify(NOTIFICATION_ID, builder.build())
+            notify(Constants.BREAKFAST_NOTIFICATION_ID, builder.build())
         }
-    }
-
-    companion object {
-        private const val CHANNEL_ID = "BREAKFAST_NOTIFICATION"
-        private const val NOTIFICATION_ID = 111
-        private const val CONTEXT_TEXT =
-            "There's nothing like starting the day with an environmentally friendly breakfast. Let's record the GHG emissions for what you ate!"
     }
 }
