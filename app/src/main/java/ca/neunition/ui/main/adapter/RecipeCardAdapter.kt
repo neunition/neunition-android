@@ -35,23 +35,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-class RecipeAdapter(
+class RecipeCardAdapter(
     private val recipesList: ArrayList<RecipeCard>,
     private val listener: OnRecipeClickListener
-) : RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
-        return RecipeViewHolder(LayoutInflater.from(parent.context).inflate(
+) : RecyclerView.Adapter<RecipeCardAdapter.RecipeCardViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeCardViewHolder {
+        return RecipeCardViewHolder(LayoutInflater.from(parent.context).inflate(
             R.layout.recipe_card,
             parent,
             false)
         )
     }
 
-    override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: RecipeCardViewHolder, position: Int) {
         val currentRecipe = recipesList[position]
 
         Glide.get(holder.itemView.context).clearMemory()
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             Glide.get(holder.itemView.context).clearDiskCache()
         }
         Glide.with(holder.itemView.context)
@@ -81,7 +81,7 @@ class RecipeAdapter(
 
     override fun getItemCount() = recipesList.size
 
-    inner class RecipeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    inner class RecipeCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
         val recipeImageView: AppCompatImageView =
             itemView.findViewById(R.id.recipe_picture_image_view)
         val recipeTitleView: AppCompatTextView = itemView.findViewById(R.id.recipe_title_text_view)

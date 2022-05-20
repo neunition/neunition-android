@@ -29,7 +29,7 @@ import ca.neunition.R
 import ca.neunition.data.remote.response.RecipeCard
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.BigDecimalAdapter
-import ca.neunition.ui.main.adapter.RecipeAdapter
+import ca.neunition.ui.main.adapter.RecipeCardAdapter
 import ca.neunition.ui.main.viewmodel.EdamamViewModel
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
 import ca.neunition.util.*
@@ -43,10 +43,9 @@ import kotlinx.coroutines.launch
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.*
 import kotlin.collections.ArrayList
 
-class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
+class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
     private lateinit var edamamViewModel: EdamamViewModel
 
@@ -272,7 +271,7 @@ class RecipesFragment : Fragment(), RecipeAdapter.OnRecipeClickListener {
      */
     private fun initRecyclerView() {
         recipesRecyclerView.apply {
-            adapter = RecipeAdapter(recipesList, this@RecipesFragment)
+            adapter = RecipeCardAdapter(recipesList, this@RecipesFragment)
             layoutManager = GridLayoutManager(requireActivity(), 2)
             adapter?.notifyDataSetChanged()
         }
