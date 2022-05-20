@@ -30,6 +30,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.ContentLoadingProgressBar
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
 import ca.neunition.R
@@ -154,7 +155,7 @@ class MainActivity : AppCompatActivity() {
                     TextView.BufferType.SPANNABLE
                 )
 
-                CoroutineScope(Dispatchers.IO).launch {
+                lifecycleScope.launch(Dispatchers.Default) {
                     Glide.get(applicationContext).clearDiskCache()
                 }
 
