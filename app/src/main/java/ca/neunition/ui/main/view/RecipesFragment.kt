@@ -98,13 +98,17 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                 weeklyScore = BigDecimal(users.weekly.toString())
                 monthlyScore = BigDecimal(users.monthly.toString())
                 yearlyScore = BigDecimal(users.yearly.toString())
-                if (currentJSONObject != users.recipesJsonData) {
-                    if (users.recipesJsonData != "") recipesList = jsonAdapter.fromJson(users.recipesJsonData)!!
-                    initRecyclerView()
-                    currentJSONObject = users.recipesJsonData
-                } else if (users.recipesJsonData == "") {
-                    initRecyclerView()
-                }
+                requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
+                    run {
+                        if (currentJSONObject != users.recipesJsonData) {
+                            if (users.recipesJsonData != "") recipesList = jsonAdapter.fromJson(users.recipesJsonData)!!
+                            initRecyclerView()
+                            currentJSONObject = users.recipesJsonData
+                        } else if (users.recipesJsonData == "") {
+                            initRecyclerView()
+                        }
+                    }
+                })
             }
         }
 
@@ -125,14 +129,17 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                             2,
                             RoundingMode.HALF_UP
                         )
+
                         val item = RecipeCard(
                             it.hits[i].recipe?.image,
                             it.hits[i].recipe?.label,
                             score,
                             it.hits[i].recipe?.url
                         )
+
                         recipesList += item
                     }
+
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         firebaseDatabaseViewModel.updateChildValues("recipesJsonData", jsonAdapter.toJson(recipesList))
                         loadingDialog.dismissDialog()
