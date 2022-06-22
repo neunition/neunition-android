@@ -46,7 +46,7 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        return inflater.inflate(R.layout.fragment_full_screen_dialog, container, false)
+        return inflater.inflate(R.layout.fragment_recipe_web_view, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
