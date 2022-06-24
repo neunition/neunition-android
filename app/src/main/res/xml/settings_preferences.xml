@@ -18,12 +18,6 @@
             app:title="Email: " />
 
         <Preference
-            app:icon="@drawable/ic_baseline_payment"
-            app:key="manage_subscription_preference"
-            app:singleLineTitle="true"
-            app:title="Manage Subscription" />
-
-        <Preference
             app:icon="@drawable/ic_logout"
             app:key="logout_preference"
             app:singleLineTitle="true"

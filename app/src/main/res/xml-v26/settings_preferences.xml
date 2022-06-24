@@ -17,12 +17,6 @@
             app:singleLineTitle="true"
             app:title="Email: " />
 
-        <Preference
-            app:icon="@drawable/ic_baseline_payment"
-            app:key="manage_subscription_preference"
-            app:singleLineTitle="true"
-            app:title="Manage Subscription" />
-
         <SwitchPreferenceCompat
             app:defaultValue="true"
             app:icon="@drawable/ic_notifications_active"
