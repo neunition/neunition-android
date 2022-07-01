@@ -58,6 +58,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -65,10 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
     private lateinit var storage: FirebaseStorage
 
-    // User's profile image
-    private lateinit var profileImageUri: Uri
-    private var fileSize: Float = 0.0f
-    private var currentUrl = ""
+    private var currentProfileImageUrl = ""
 
     private lateinit var loadingDialog: LoadingDialog
 
@@ -160,11 +159,11 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 val imgUrl = users.profileImageUrl
-                if (imgUrl != "" && currentUrl != imgUrl) {
-                    currentUrl = imgUrl
+                if (imgUrl != "" && currentProfileImageUrl != imgUrl) {
+                    currentProfileImageUrl = imgUrl
                     // Min version 384px x 384px
                     Glide.with(applicationContext)
-                        .load(currentUrl)
+                        .load(currentProfileImageUrl)
                         .apply(RequestOptions.skipMemoryCacheOf(true))
                         .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE))
                         .into(profileImageView)
@@ -190,22 +189,22 @@ class MainActivity : AppCompatActivity() {
         val profileImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
             if (res.resultCode == Activity.RESULT_OK && res.data != null) {
                 // Proceed and check what the selected image was
-                profileImageUri = res.data!!.data!!
-                fileSize = getImageSize(applicationContext, profileImageUri)
+                val profileImageUri = res.data!!.data!!
+                val fileSize = getImageSize(applicationContext, profileImageUri)
 
                 if (fileSize > 2.0) {
                     val builder = MaterialAlertDialogBuilder(this).apply {
                         setTitle("Image Too Large")
                         setMessage("The image you have selected exceeds the 2 MB limit.")
                         setCancelable(false)
-                        setPositiveButton("OK") { dialog, _ ->
+                        setPositiveButton("ok") { dialog, _ ->
                             dialog.dismiss()
                         }
                     }
                     builder.create().show()
                 } else {
-                    // Upload the user's profile image to Firebase Storage
-                    uploadProfileImage()
+                    loadingDialog.startDialog()
+                    uploadProfileImage(profileImageUri)
                 }
             }
         }
@@ -257,33 +256,37 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Upload the user's profile image to Firebase Storage.
+     *
+     * @param profileImageUri the image to upload
      */
-    private fun uploadProfileImage() {
-        loadingDialog.startDialog()
-        val filename: String = Constants.FIREBASE_AUTH.currentUser?.uid ?: ""
-        val ref: StorageReference = storage.getReference("/profile_pictures/$filename")
-        ref.putFile(profileImageUri)
-            .addOnSuccessListener {
-                ref.downloadUrl.addOnSuccessListener {
-                    firebaseDatabaseViewModel.updateChildValues("profileImageUrl", it.toString())
-                    loadingDialog.dismissDialog()
-                }
+    private fun uploadProfileImage(profileImageUri: Uri) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            val filename: String = Constants.FIREBASE_AUTH.currentUser?.uid ?: ""
+            val ref: StorageReference = storage.getReference("/profile_pictures/$filename")
+            ref.putFile(profileImageUri).await()
+            ref.downloadUrl.await().let {
+                firebaseDatabaseViewModel.updateChildValues("profileImageUrl", it.toString())
             }
-            .addOnFailureListener {
+            withContext(Dispatchers.Main) {
+                loadingDialog.dismissDialog()
+            }
+        } catch (error: Exception) {
+            withContext(Dispatchers.Main) {
                 loadingDialog.dismissDialog()
                 if (!isOnline(applicationContext)) {
                     Toast.makeText(
-                        this,
+                        this@MainActivity,
                         "Failed to upload image: No internet connection found. Please check your connection.",
                         Toast.LENGTH_LONG
                     ).show()
                 } else {
                     Toast.makeText(
-                        this,
-                        "${it.message}",
+                        this@MainActivity,
+                        "${error.message}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
+        }
     }
 }
