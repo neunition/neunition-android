@@ -32,7 +32,10 @@ import ca.neunition.ui.main.adapter.BigDecimalAdapter
 import ca.neunition.ui.main.adapter.RecipeCardAdapter
 import ca.neunition.ui.main.viewmodel.EdamamViewModel
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.*
+import ca.neunition.util.Constants
+import ca.neunition.util.hideKeyboard
+import ca.neunition.util.isOnline
+import ca.neunition.util.recipeCO2Analysis
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -43,7 +46,6 @@ import kotlinx.coroutines.launch
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlin.collections.ArrayList
 
 class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
