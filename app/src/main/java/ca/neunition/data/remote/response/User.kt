@@ -9,7 +9,10 @@
 
 package ca.neunition.data.remote.response
 
-data class Users(
+import com.google.firebase.database.Exclude
+import java.io.Serializable
+
+data class User(
     var fullName: String? = "",
     val daily: Double = 0.0,
     val weekly: Double = 0.0,
@@ -17,5 +20,8 @@ data class Users(
     val yearly: Double = 0.0,
     val previousRecords: String = "",
     val profileImageUrl: String = "",
-    val recipesJsonData: String = ""
-)
+    val recipesJsonData: String = "",
+    @get:Exclude var isAuthenticated: Boolean = false,
+    @get:Exclude var isNew: Boolean = false,
+    @get:Exclude var isCreated: Boolean = false,
+) : Serializable

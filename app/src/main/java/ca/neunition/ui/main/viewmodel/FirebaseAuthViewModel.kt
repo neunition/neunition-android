@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * ViewModel to pass the Firebase Authentication data to the activity.
+ * ViewModel to pass the Firebase Authentication data to the repository.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -9,14 +9,41 @@
 
 package ca.neunition.ui.main.viewmodel
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
+import ca.neunition.data.remote.response.User
 import ca.neunition.data.repository.FirebaseAuthRepository
+import com.google.firebase.auth.AuthCredential
 
-class FirebaseAuthViewModel : ViewModel() {
-    private val repository = FirebaseAuthRepository()
+class FirebaseAuthViewModel(application: Application) : AndroidViewModel(application) {
+    private val authRepository = FirebaseAuthRepository(application)
+    lateinit var authenticatedUserLiveData: LiveData<User>
+    lateinit var createdUserLiveData: LiveData<User>
 
-    fun getAuthState(): LiveData<Boolean> {
-        return repository.getFirebaseAuthState()
+    /**
+     * Call [firebaseAuthSignIn] method in [FirebaseAuthRepository].
+     *
+     * @param credential a credential for the Firebase Authentication server to use to authenticate the user
+     * @param provider the sign-in provider the user selected
+     */
+    fun signInWithFirebase(credential: AuthCredential, provider: String) {
+        authenticatedUserLiveData = authRepository.firebaseAuthSignIn(
+            credential,
+            provider,
+        )
+    }
+
+    /**
+     * Call [createUserInDatabaseIfNotExists] method in [FirebaseAuthRepository].
+     *
+     * @param authenticatedUser that data for creating a new user in the Realtime Database
+     * @param provider the sign-in provider the user selected
+     */
+    fun createUser(authenticatedUser: User, provider: String) {
+        createdUserLiveData = authRepository.createUserInDatabaseIfNotExists(
+            authenticatedUser,
+            provider,
+        )
     }
 }

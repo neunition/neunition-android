@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * Ask the user to login with either their Google account or Facebook account.
+ * Ask the user to sign in with either their Facebook account or Google account.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -9,7 +9,6 @@
 
 package ca.neunition.ui.main.view
 
-import android.app.Activity
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -20,34 +19,41 @@ import android.text.style.ClickableSpan
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.widget.CompoundButtonCompat
+import androidx.lifecycle.ViewModelProvider
 import ca.neunition.R
-import ca.neunition.data.remote.response.Users
-import ca.neunition.util.Constants
+import ca.neunition.ui.main.viewmodel.FirebaseAuthViewModel
 import ca.neunition.util.changeStatusBarColor
-import ca.neunition.util.isOnline
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
-    private lateinit var googleSignInButton: AppCompatButton
     private lateinit var facebookSignInButton: AppCompatButton
+    private lateinit var googleSignInButton: AppCompatButton
     private lateinit var agreeCheckBox: AppCompatCheckBox
     private lateinit var termsPrivacyAgreement: AppCompatTextView
 
-    private lateinit var googleSignInClient: GoogleSignInClient
-    private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
+    private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
 
     // private lateinit var recaptchaViewModel: RecaptchaResponseViewModel
 
@@ -57,8 +63,8 @@ class LoginActivity : AppCompatActivity() {
 
         changeStatusBarColor()
 
-        googleSignInButton = findViewById(R.id.google_sign_in_button)
         facebookSignInButton = findViewById(R.id.facebook_sign_in_button)
+        googleSignInButton = findViewById(R.id.google_sign_in_button)
 
         agreeCheckBox = findViewById(R.id.agree_check_box)
         CompoundButtonCompat.setButtonTintList(agreeCheckBox, ColorStateList.valueOf(Color.WHITE))
@@ -73,33 +79,88 @@ class LoginActivity : AppCompatActivity() {
             })
         )
 
+        firebaseAuthViewModel = ViewModelProvider(this)[FirebaseAuthViewModel::class.java]
+
         // recaptchaViewModel = ViewModelProvider(this)[RecaptchaResponseViewModel::class.java]
 
-        // Configure Google Sign In
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(com.firebase.ui.auth.R.string.default_web_client_id))
-            .requestEmail()
-            .build()
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        /****************************** Facebook Login ********************************************/
+        val callbackManager = CallbackManager.Factory.create()
 
-        googleSignInLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-                // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent
-                if (res.resultCode == Activity.RESULT_OK) {
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(res.data)
-                    try {
-                        // Google Sign In was successful, authenticate with Firebase
-                        val account = task.getResult(ApiException::class.java)
-                        firebaseAuthWithGoogle(account.idToken!!)
-                    } catch (e: ApiException) {
+        facebookSignInButton.setOnClickListener {
+            if (!agreeCheckBox.isChecked) {
+                Toast.makeText(
+                    this,
+                    "You must accept the Terms & Conditions and Privacy Policy to continue using our app.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@setOnClickListener
+            } else {
+                LoginManager.getInstance().logInWithReadPermissions(this, callbackManager, arrayOf("email", "public_profile").toList())
+                LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                    override fun onSuccess(result: LoginResult) {
+                        val credential = FacebookAuthProvider.getCredential(result.accessToken.token)
+                        signInWithFirebaseAuthCredential(credential, "Facebook")
+                    }
+
+                    override fun onCancel() {
                         Toast.makeText(
-                            this,
-                            "Google sign in failed: ${e.message}",
+                            this@LoginActivity,
+                            "Facebook Login Cancelled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    override fun onError(error: FacebookException) {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "${error.message}",
                             Toast.LENGTH_LONG
                         ).show()
                     }
+                })
+            }
+        }
+        /****************************** Facebook Login ********************************************/
+
+        /******************************* Google Login *********************************************/
+        val oneTapClient = Identity.getSignInClient(this)
+        val signInRequest = BeginSignInRequest.builder()
+            .setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true)
+                    .setServerClientId(getString(com.firebase.ui.auth.R.string.default_web_client_id))
+                    .setFilterByAuthorizedAccounts(false)
+                    .build()
+            ).build()
+
+        val googleSignInLauncher = registerForActivityResult(StartIntentSenderForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                try {
+                    val googleCredential  = oneTapClient.getSignInCredentialFromIntent(result.data)
+                    val idToken = googleCredential.googleIdToken
+                    when {
+                        idToken != null -> {
+                            // Got an ID token from Google. Use it to authenticate with Firebase.
+                            val credential = GoogleAuthProvider.getCredential(idToken, null)
+                            signInWithFirebaseAuthCredential(credential, "Google")
+                        }
+                        else -> {
+                            Toast.makeText(
+                                this,
+                                "Google sign in failed.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                } catch (e: ApiException) {
+                    Toast.makeText(
+                        this,
+                        "Google sign in failed: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
+        }
 
         googleSignInButton.setOnClickListener {
             if (!agreeCheckBox.isChecked) {
@@ -110,74 +171,62 @@ class LoginActivity : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             } else {
-                val signInIntent = googleSignInClient.signInIntent
-                googleSignInLauncher.launch(signInIntent)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        oneTapClient.beginSignIn(signInRequest).await().let { result ->
+                            googleSignInLauncher.launch(
+                                IntentSenderRequest.Builder(result.pendingIntent.intentSender)
+                                    .build()
+                            )
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@LoginActivity,
+                                error.message,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
+                }
                 /*SafetyNet.getClient(this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_SITE_KEY)
                     .addOnSuccessListener(RecaptchaSuccessListener())
                     .addOnFailureListener(RecaptchaFailureListener())*/
             }
         }
+        /******************************* Google Login *********************************************/
+    }
 
-        facebookSignInButton.setOnClickListener {
-            // When we create the facebook page for Neunition
-            true
+    /**
+     * Using Facebook or Google credentials, sign into Firebase. Set credentials in our
+     * AuthViewModel and then start observing the changes.
+     *
+     * @param credential a credential for the Firebase Authentication server to use to authenticate the user
+     * @param provider the sign-in provider the user selected
+     */
+    private fun signInWithFirebaseAuthCredential(credential: AuthCredential, provider: String) {
+        firebaseAuthViewModel.signInWithFirebase(credential, provider)
+        // First observer for signing the user into Firebase
+        firebaseAuthViewModel.authenticatedUserLiveData.observe(this) { authenticatedUser ->
+            if (authenticatedUser.isNew) {
+                firebaseAuthViewModel.createUser(authenticatedUser, provider)
+                // Second observer (optional) for creating a new user in the Realtime Database
+                firebaseAuthViewModel.createdUserLiveData.observe(this) {
+                    goToMainActivity()
+                }
+            } else {
+                goToMainActivity()
+            }
         }
     }
 
     /**
-     * Authenticate Google sign in with Firebase
-     *
-     * @param idToken An ID token from the GoogleSignInAccount object that gets exchanged for a
-     * Firebase credential
+     * Go to the main screen after the user successfully signs in.
      */
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        Constants.FIREBASE_AUTH.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    if (task.result.additionalUserInfo?.isNewUser == true) {
-                        // User data to save on Firebase Realtime Database
-                        val uid = Constants.FIREBASE_AUTH.uid ?: ""
-                        val ref = Firebase.database.getReference("/users/$uid")
-                        val newUser =
-                            Users(
-                                Constants.FIREBASE_AUTH.currentUser?.displayName,
-                                0.0,
-                                0.0,
-                                0.0,
-                                0.0,
-                                "",
-                                Constants.FIREBASE_AUTH.currentUser?.photoUrl.toString(),
-                                "",
-                            )
-                        ref.setValue(newUser)
-                    }
-
-                    val intent = Intent(this, MainActivity::class.java).apply {
-                        flags =
-                            Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    startActivity(intent)
-                    finish()
-                }
-            }
-            // If sign in fails, display a message to the user.
-            .addOnFailureListener {
-                if (!isOnline(applicationContext)) {
-                    Toast.makeText(
-                        this,
-                        "Failed to sign in to your Google account: No internet connection found. Please check your connection.",
-                        Toast.LENGTH_LONG
-                    )
-                        .show()
-                } else {
-                    Toast.makeText(
-                        this,
-                        "Failed to sign in to your Google account: ${it.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
+    private fun goToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
     /**

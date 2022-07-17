@@ -11,32 +11,33 @@ package ca.neunition.ui.main.view
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import ca.neunition.R
-import ca.neunition.ui.main.viewmodel.FirebaseAuthViewModel
+import ca.neunition.ui.main.viewmodel.SplashViewModel
 
 class SplashActivity : AppCompatActivity() {
-    private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
-    private lateinit var firebaseAuthLiveData: Unit
+    private lateinit var splashViewModel: SplashViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.SplashTheme)
         super.onCreate(savedInstanceState)
 
-        // Check to see if the user is already logged in.
-        firebaseAuthViewModel = ViewModelProvider(this)[FirebaseAuthViewModel::class.java]
-        firebaseAuthLiveData = firebaseAuthViewModel.getAuthState().observe(this) { isUserSignedOut ->
-            val intent = when (isUserSignedOut) {
-                true -> Intent(this, LoginActivity::class.java)
-                false -> Intent(this, MainActivity::class.java)
-            }
-            Handler(Looper.getMainLooper()).postDelayed({
+        splashViewModel = ViewModelProvider(this)[SplashViewModel::class.java]
+        splashViewModel.checkIfUserIsAuthenticated()
+        splashViewModel.isUserAuthenticatedLiveData.observe(this) { user ->
+            if (!user.isAuthenticated) {
+                val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
                 finish()
-            }, 100)
+            } else {
+                splashViewModel.getUserFromDatabase()
+                splashViewModel.userLiveData.observe(this) {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
+            }
         }
     }
 }
