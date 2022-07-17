@@ -12,12 +12,15 @@ package ca.neunition.util
 import ca.neunition.BuildConfig
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import javax.inject.Singleton
 
 @Singleton
 object Constants {
     val FIREBASE_AUTH: FirebaseAuth by lazy { Firebase.auth }
+    val FIREBASE_DATABASE: FirebaseDatabase by lazy { Firebase.database }
 
     val EDAMAM_API_ID: String by lazy { BuildConfig.EDAMAM_API_ID }
     val EDAMAM_API_KEY: String by lazy { BuildConfig.EDAMAM_API_KEY }
