@@ -11,11 +11,10 @@
             app:useSimpleSummaryProvider="true" />
 
         <Preference
-            app:icon="@drawable/ic_baseline_email"
-            app:key="user_email_preference"
+            app:key="user_provider_preference"
             app:selectable="false"
             app:singleLineTitle="true"
-            app:title="Email: " />
+            app:title="Connected with" />
 
         <SwitchPreferenceCompat
             app:defaultValue="true"
