@@ -55,8 +55,6 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
 
-    // private lateinit var recaptchaViewModel: RecaptchaResponseViewModel
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -80,8 +78,6 @@ class LoginActivity : AppCompatActivity() {
         )
 
         firebaseAuthViewModel = ViewModelProvider(this)[FirebaseAuthViewModel::class.java]
-
-        // recaptchaViewModel = ViewModelProvider(this)[RecaptchaResponseViewModel::class.java]
 
         /****************************** Facebook Login ********************************************/
         val callbackManager = CallbackManager.Factory.create()
@@ -189,9 +185,6 @@ class LoginActivity : AppCompatActivity() {
                         }
                     }
                 }
-                /*SafetyNet.getClient(this).verifyWithRecaptcha(BuildConfig.RECAPTCHA_SITE_KEY)
-                    .addOnSuccessListener(RecaptchaSuccessListener())
-                    .addOnFailureListener(RecaptchaFailureListener())*/
             }
         }
         /******************************* Google Login *********************************************/
@@ -260,41 +253,4 @@ class LoginActivity : AppCompatActivity() {
             LinkMovementMethod.getInstance() // without LinkMovementMethod, link can not click
         this.setText(spannableString, TextView.BufferType.SPANNABLE)
     }
-
-    /*private inner class RecaptchaSuccessListener : OnSuccessListener<SafetyNetApi.RecaptchaTokenResponse> {
-        override fun onSuccess(recaptchaTokenResponse: SafetyNetApi.RecaptchaTokenResponse) {
-            val userResponseToken = recaptchaTokenResponse.tokenResult
-            if (userResponseToken != null && userResponseToken.isNotEmpty()) {
-                recaptchaViewModel.getmRecaptchaObservable("https://www.google.com", userResponseToken, BuildConfig.RECAPTCHA_SECRET_KEY).observe(this@LoginActivity, object : Observer<RecaptchaVerifyResponse> {
-                    override fun onChanged(@Nullable recaptchaVerifyResponse: RecaptchaVerifyResponse?) {
-                        if (recaptchaVerifyResponse != null && recaptchaVerifyResponse.success) {
-
-                        } else {
-                            Toast.makeText(
-                                applicationContext,
-                                "Failed to verify reCAPTCHA: ${recaptchaVerifyResponse?.error_codes}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                })
-            } else {
-                Toast.makeText(
-                    applicationContext,
-                    "Failed to verify reCAPTCHA",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
-    private inner class RecaptchaFailureListener : OnFailureListener {
-        override fun onFailure(@NonNull e: Exception) {
-            Toast.makeText(
-                applicationContext,
-                "Failed to verify reCAPTCHA: ${e.message}",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }*/
 }
