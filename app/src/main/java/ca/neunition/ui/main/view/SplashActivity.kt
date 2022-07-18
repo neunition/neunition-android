@@ -24,15 +24,13 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         splashViewModel = ViewModelProvider(this)[SplashViewModel::class.java]
-        splashViewModel.checkIfUserIsAuthenticated()
-        splashViewModel.isUserAuthenticatedLiveData.observe(this) { user ->
+        splashViewModel.checkIfUserIsAuthenticated().observe(this) { user ->
             if (!user.isAuthenticated) {
                 val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
                 finish()
             } else {
-                splashViewModel.getUserFromDatabase()
-                splashViewModel.userLiveData.observe(this) {
+                splashViewModel.getUserFromDatabase().observe(this) {
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
                     finish()

@@ -18,8 +18,6 @@ import com.google.firebase.auth.AuthCredential
 
 class FirebaseAuthViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = FirebaseAuthRepository(application)
-    lateinit var authenticatedUserLiveData: LiveData<User>
-    lateinit var createdUserLiveData: LiveData<User>
 
     /**
      * Call [firebaseAuthSignIn] method in [FirebaseAuthRepository].
@@ -27,23 +25,17 @@ class FirebaseAuthViewModel(application: Application) : AndroidViewModel(applica
      * @param credential a credential for the Firebase Authentication server to use to authenticate the user
      * @param provider the sign-in provider the user selected
      */
-    fun signInWithFirebase(credential: AuthCredential, provider: String) {
-        authenticatedUserLiveData = authRepository.firebaseAuthSignIn(
-            credential,
-            provider,
-        )
+    fun signInWithFirebase(credential: AuthCredential, provider: String): LiveData<User> {
+        return authRepository.firebaseAuthSignIn(credential, provider)
     }
-
+    
     /**
      * Call [createUserInDatabaseIfNotExists] method in [FirebaseAuthRepository].
      *
      * @param authenticatedUser that data for creating a new user in the Realtime Database
      * @param provider the sign-in provider the user selected
      */
-    fun createUser(authenticatedUser: User, provider: String) {
-        createdUserLiveData = authRepository.createUserInDatabaseIfNotExists(
-            authenticatedUser,
-            provider,
-        )
+    fun createUser(authenticatedUser: User, provider: String): LiveData<User> {
+        return authRepository.createUserInDatabaseIfNotExists(authenticatedUser, provider)
     }
 }

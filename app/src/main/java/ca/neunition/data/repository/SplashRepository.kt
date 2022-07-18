@@ -10,11 +10,10 @@
 package ca.neunition.data.repository
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import ca.neunition.data.remote.response.User
 import ca.neunition.util.Constants
-import ca.neunition.util.isOnline
+import ca.neunition.util.toastErrorMessages
 import com.google.firebase.database.DatabaseReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +24,6 @@ import kotlinx.coroutines.withContext
 class SplashRepository(
     private val application: Application,
     private val user: User = User(),
-    private val userRef: DatabaseReference = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.uid}")
 ) {
     /**
      * Check if user is already logged into Firebase.
@@ -53,6 +51,7 @@ class SplashRepository(
      */
     fun addUserToLiveData(): MutableLiveData<User> {
         val userMutableLiveData = MutableLiveData<User>()
+        val userRef: DatabaseReference = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -66,19 +65,11 @@ class SplashRepository(
                 }
             } catch (error: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (!isOnline(application.applicationContext)) {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "No internet connection found. Please check your connection.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    toastErrorMessages(
+                        application.applicationContext,
+                        "No internet connection found. Please check your connection.",
+                        "${error.message}"
+                    )
                 }
             }
         }

@@ -10,22 +10,18 @@
 package ca.neunition.data.repository
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import ca.neunition.data.remote.response.User
 import ca.neunition.util.Constants
-import ca.neunition.util.isOnline
+import ca.neunition.util.toastErrorMessages
 import com.google.firebase.auth.AuthCredential
-import com.google.firebase.database.DatabaseReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
-class FirebaseAuthRepository(
-    private val application: Application,
-) {
+class FirebaseAuthRepository(private val application: Application) {
     /**
      * Proceed with the Firebase authentication process.
      *
@@ -67,6 +63,7 @@ class FirebaseAuthRepository(
                             "",
                             profileImageUrl,
                             "",
+                            ""
                         )
                         user.isNew = isNewUser
                         withContext(Dispatchers.Main) {
@@ -76,19 +73,11 @@ class FirebaseAuthRepository(
                 }
             } catch (error: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (!isOnline(application.applicationContext)) {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "Failed to sign in to your $provider account: No internet connection found. Please check your connection.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "Failed to sign in to your $provider account: ${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    toastErrorMessages(
+                        application.applicationContext,
+                        "Failed to sign in to your $provider account: No internet connection found. Please check your connection.",
+                        "Failed to sign in to your $provider account: ${error.message}"
+                    )
                 }
             }
         }
@@ -109,7 +98,7 @@ class FirebaseAuthRepository(
         provider: String,
     ): MutableLiveData<User> {
         val newUserMutableLiveData = MutableLiveData<User>()
-        val userRef: DatabaseReference = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.uid}")
+        val userRef = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -121,19 +110,11 @@ class FirebaseAuthRepository(
                 }
             } catch (error: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (!isOnline(application.applicationContext)) {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "Failed to sign in to your $provider account: No internet connection found. Please check your connection.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        Toast.makeText(
-                            application.applicationContext,
-                            "Failed to sign in to your $provider account: ${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    toastErrorMessages(
+                        application.applicationContext,
+                        "Failed to sign in to your $provider account: No internet connection found. Please check your connection.",
+                        "Failed to sign in to your $provider account: ${error.message}"
+                    )
                 }
             }
         }

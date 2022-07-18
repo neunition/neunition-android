@@ -17,20 +17,18 @@ import ca.neunition.data.repository.SplashRepository
 
 class SplashViewModel(application: Application) : AndroidViewModel(application) {
     private val splashRepository = SplashRepository(application)
-    lateinit var isUserAuthenticatedLiveData: LiveData<User>
-    lateinit var userLiveData: LiveData<User>
 
     /**
      * Call [checkIfUserIsAuthenticatedInFirebase] method in [SplashRepository].
      */
-    fun checkIfUserIsAuthenticated() {
-        isUserAuthenticatedLiveData = splashRepository.checkIfUserIsAuthenticatedInFirebase()
+    fun checkIfUserIsAuthenticated(): LiveData<User> {
+        return splashRepository.checkIfUserIsAuthenticatedInFirebase()
     }
 
     /**
      * Call [addUserToLiveData] method in [SplashRepository].
      */
-    fun getUserFromDatabase() {
-        userLiveData = splashRepository.addUserToLiveData()
+    fun getUserFromDatabase(): LiveData<User> {
+        return splashRepository.addUserToLiveData()
     }
 }

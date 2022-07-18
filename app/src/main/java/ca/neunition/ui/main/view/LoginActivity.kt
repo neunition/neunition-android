@@ -198,13 +198,11 @@ class LoginActivity : AppCompatActivity() {
      * @param provider the sign-in provider the user selected
      */
     private fun signInWithFirebaseAuthCredential(credential: AuthCredential, provider: String) {
-        firebaseAuthViewModel.signInWithFirebase(credential, provider)
         // First observer for signing the user into Firebase
-        firebaseAuthViewModel.authenticatedUserLiveData.observe(this) { authenticatedUser ->
+        firebaseAuthViewModel.signInWithFirebase(credential, provider).observe(this) { authenticatedUser ->
             if (authenticatedUser.isNew) {
-                firebaseAuthViewModel.createUser(authenticatedUser, provider)
                 // Second observer (optional) for creating a new user in the Realtime Database
-                firebaseAuthViewModel.createdUserLiveData.observe(this) {
+                firebaseAuthViewModel.createUser(authenticatedUser, provider).observe(this) {
                     goToMainActivity()
                 }
             } else {
