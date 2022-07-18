@@ -22,6 +22,7 @@ import android.text.style.StyleSpan
 import android.view.View
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import ca.neunition.R
@@ -70,6 +71,14 @@ fun isOnline(context: Context): Boolean {
         }
     } else {
         return connectivityManager.activeNetworkInfo?.isConnected ?: false
+    }
+}
+
+fun toastErrorMessages(context: Context, noConnectionMessage: String, otherErrorMessage: String) {
+    if (!isOnline(context)) {
+        Toast.makeText(context, noConnectionMessage, Toast.LENGTH_LONG).show()
+    } else {
+        Toast.makeText(context, otherErrorMessage, Toast.LENGTH_LONG).show()
     }
 }
 
