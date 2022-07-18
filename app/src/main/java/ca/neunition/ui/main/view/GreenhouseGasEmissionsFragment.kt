@@ -65,9 +65,9 @@ class GreenhouseGasEmissionsFragment : Fragment() {
 
         // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
-        firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { users ->
-            if (users != null) {
-                dailyScore = BigDecimal(users.daily.toString())
+        firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                dailyScore = BigDecimal(user.daily.toString())
                 todayScoreTextView.setText(
                     scoreColourChange(
                         requireActivity(),
@@ -78,7 +78,7 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                     ), TextView.BufferType.SPANNABLE
                 )
 
-                weeklyScore = BigDecimal(users.weekly.toString())
+                weeklyScore = BigDecimal(user.weekly.toString())
                 weekScoreTextView.setText(
                     scoreColourChange(
                         requireActivity(),
@@ -89,7 +89,7 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                     ), TextView.BufferType.SPANNABLE
                 )
 
-                monthlyScore = BigDecimal(users.monthly.toString())
+                monthlyScore = BigDecimal(user.monthly.toString())
                 monthScoreTextView.setText(
                     scoreColourChange(
                         requireActivity(),
@@ -100,7 +100,7 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                     ), TextView.BufferType.SPANNABLE
                 )
 
-                yearlyScore = BigDecimal(users.yearly.toString())
+                yearlyScore = BigDecimal(user.yearly.toString())
                 yearScoreTextView.setText(
                     scoreColourChange(
                         requireActivity(),

@@ -95,12 +95,12 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
 
         // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this).get(FirebaseDatabaseViewModel::class.java)
-        firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { users ->
-            if (users != null) {
-                dailyScore = BigDecimal(users.daily.toString())
-                weeklyScore = BigDecimal(users.weekly.toString())
-                monthlyScore = BigDecimal(users.monthly.toString())
-                yearlyScore = BigDecimal(users.yearly.toString())
+        firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                dailyScore = BigDecimal(user.daily.toString())
+                weeklyScore = BigDecimal(user.weekly.toString())
+                monthlyScore = BigDecimal(user.monthly.toString())
+                yearlyScore = BigDecimal(user.yearly.toString())
             }
         }
 
@@ -143,7 +143,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
                 if (res.resultCode == Activity.RESULT_OK && res.data != null) {
                     loadingDialog.startDialog()
-                    lifecycleScope.launch(Dispatchers.IO) {
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         val recognizer =
                             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                         // Proceed and check what the selected image was
@@ -310,8 +310,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                             )
                         }
                     }
-                    currentEmissionsScore =
-                        currentEmissionsScore.add(correctCalc.setScale(2, RoundingMode.HALF_UP))
+                    currentEmissionsScore = currentEmissionsScore.add(correctCalc
+                        .setScale(2, RoundingMode.HALF_UP))
                     currentEmissionsTextView.setText(
                         scoreColourChange(
                             requireActivity(),
@@ -389,10 +389,10 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
             weeklyScore = weeklyScore.add(currentEmissionsScore)
             monthlyScore = monthlyScore.add(currentEmissionsScore)
             yearlyScore = yearlyScore.add(currentEmissionsScore)
-            firebaseDatabaseViewModel.updateChildValues("daily", dailyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValues("weekly", weeklyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValues("monthly", monthlyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValues("yearly", yearlyScore.toDouble())
+            firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
+            firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
+            firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
+            firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
             clearRecyclerView()
             Toast.makeText(
                 requireActivity(),

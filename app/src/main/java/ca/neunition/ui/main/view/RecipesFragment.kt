@@ -22,7 +22,6 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
@@ -32,20 +31,20 @@ import ca.neunition.ui.main.adapter.BigDecimalAdapter
 import ca.neunition.ui.main.adapter.RecipeCardAdapter
 import ca.neunition.ui.main.viewmodel.EdamamViewModel
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.Constants
-import ca.neunition.util.hideKeyboard
-import ca.neunition.util.isOnline
-import ca.neunition.util.recipeCO2Analysis
+import ca.neunition.util.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.net.HttpURLConnection
+import java.net.URL
 
 class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
@@ -94,19 +93,22 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
         recipesRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
 
         firebaseDatabaseViewModel = ViewModelProvider(requireActivity())[FirebaseDatabaseViewModel::class.java]
-        firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { users ->
-            if (users != null) {
-                dailyScore = BigDecimal(users.daily.toString())
-                weeklyScore = BigDecimal(users.weekly.toString())
-                monthlyScore = BigDecimal(users.monthly.toString())
-                yearlyScore = BigDecimal(users.yearly.toString())
+        firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                dailyScore = BigDecimal(user.daily.toString())
+                weeklyScore = BigDecimal(user.weekly.toString())
+                monthlyScore = BigDecimal(user.monthly.toString())
+                yearlyScore = BigDecimal(user.yearly.toString())
                 requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
                     run {
-                        if (currentJSONObject != users.recipesJsonData) {
-                            if (users.recipesJsonData != "") recipesList = jsonAdapter.fromJson(users.recipesJsonData)!!
+                        if (currentJSONObject != user.recipesJsonData) {
+                            if (user.recipesJsonData != "") {
+                                recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
+                                verifyJsonData()
+                            }
                             initRecyclerView()
-                            currentJSONObject = users.recipesJsonData
-                        } else if (users.recipesJsonData == "") {
+                            currentJSONObject = user.recipesJsonData
+                        } else if (user.recipesJsonData == "") {
                             initRecyclerView()
                         }
                     }
@@ -142,10 +144,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                         recipesList += item
                     }
 
-                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        firebaseDatabaseViewModel.updateChildValues("recipesJsonData", jsonAdapter.toJson(recipesList))
-                        loadingDialog.dismissDialog()
-                    }
+                    firebaseDatabaseViewModel.updateChildValue("recipesJsonData", jsonAdapter.toJson(recipesList))
+
+                    loadingDialog.dismissDialog()
                 }
             }
         }
@@ -276,6 +277,36 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     }
 
     /**
+     * Check if the first images returns a HTTP 403 error and if it does, clear the saved recipes.
+     */
+    private fun verifyJsonData() {
+        try {
+            if (recipesList.size > 0) {
+                val url = URL(recipesList[0].recipeImage.toString())
+                val connection = url.openConnection() as HttpURLConnection
+                connection.apply {
+                    readTimeout = 5000
+                    connectTimeout = 5000
+                    requestMethod = "GET"
+                }
+                CoroutineScope(Dispatchers.IO).launch {
+                    val responseCode = connection.responseCode
+                    if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                        firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
+                        recipesList = ArrayList()
+                    }
+                }
+            }
+        } catch (error: Exception) {
+            toastErrorMessages(
+                requireActivity(),
+                "Cannot load recipes: No internet connection found. Please check your connection.",
+                error.message.toString()
+            )
+        }
+    }
+
+    /**
      * Initialize the RecyclerView.
      */
     private fun initRecyclerView() {
@@ -295,7 +326,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
         loadingDialog.startDialog()
         recipesList.clear()
         recipesRecyclerView.adapter?.notifyDataSetChanged()
-        firebaseDatabaseViewModel.updateChildValues("recipesJsonData", "")
+        firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
     }
 
     /**
@@ -328,10 +359,10 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                     weeklyScore = weeklyScore.add(score)
                     monthlyScore = monthlyScore.add(score)
                     yearlyScore = yearlyScore.add(score)
-                    firebaseDatabaseViewModel.updateChildValues("daily", dailyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValues("weekly", weeklyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValues("monthly", monthlyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValues("yearly", yearlyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
                 } else {
                     addGHGEmissions(meal, score)
                     Toast.makeText(

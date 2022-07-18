@@ -19,12 +19,14 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.*
 import ca.neunition.R
 import ca.neunition.di.NotificationsClass
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
 import ca.neunition.util.Constants
+import ca.neunition.util.toastErrorMessages
 import com.facebook.AccessToken
 import com.facebook.login.LoginManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -37,6 +39,10 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ktx.storage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -92,7 +98,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
-        firebaseDatabaseViewModel.getUsersLiveData().observe(viewLifecycleOwner) { user ->
+        firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 fullNamePreference.text = user.fullName
             }
@@ -108,7 +114,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     ).show()
                     false
                 } else {
-                    firebaseDatabaseViewModel.updateChildValues(
+                    firebaseDatabaseViewModel.updateChildValue(
                         "fullName",
                         newValue.toString().trim()
                     )
@@ -182,7 +188,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         deleteAccountPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                // Display a dialog to warn the user about deleting their account
                 val builder = MaterialAlertDialogBuilder(requireContext())
                 builder.setTitle("Warning!")
                     .setMessage("Are you sure you want to delete your account? This cannot be undone.")
@@ -191,15 +196,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         loadingDialog.startDialog()
 
                         if (userSignInProvider == "facebook.com") {
-                            val credential =
-                                FacebookAuthProvider.getCredential(AccessToken.getCurrentAccessToken()!!.token)
+                            val credential = FacebookAuthProvider
+                                .getCredential(AccessToken.getCurrentAccessToken()!!.token)
                             deleteUser(credential)
                         } else if (userSignInProvider == "google.com") {
-                            val gso =
-                                GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                    .requestIdToken(getString(com.firebase.ui.auth.R.string.default_web_client_id))
-                                    .requestEmail()
-                                    .build()
+                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestIdToken(getString(com.firebase.ui.auth.R.string.default_web_client_id))
+                                .requestEmail()
+                                .build()
                             val googleSignInClient = GoogleSignIn
                                 .getClient(requireActivity(), gso)
                                 .silentSignIn()
@@ -262,6 +266,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             lunchNotificationsPreference.isVisible = false
             dinnerNotificationsPreference.isVisible = false
         }
+
         val breakfastSwitchOn = sharedPreferences.getBoolean(breakfastNotificationsPreference.key, true)
         val lunchSwitchOn = sharedPreferences.getBoolean(lunchNotificationsPreference.key, true)
         val dinnerSwitchOn = sharedPreferences.getBoolean(dinnerNotificationsPreference.key, true)
@@ -270,9 +275,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     private fun deleteUser(credential: AuthCredential) {
         val user = Constants.FIREBASE_AUTH.currentUser!!
-        user.reauthenticate(credential)
-            .addOnCompleteListener {
-                if (it.isSuccessful) {
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                user.reauthenticate(credential).await().let {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         notificationsClass.breakfastCancelAlarm()
                         notificationsClass.lunchCancelAlarm()
@@ -292,44 +298,47 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
                     Firebase.storage.getReference("/profile_pictures/${user.uid}").delete()
 
-                    firebaseDatabaseViewModel.removeUsersLiveData()
+                    firebaseDatabaseViewModel.removeUser()
 
-                    user.delete().addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            loadingDialog.dismissDialog()
+                    try {
+                        user.delete().await().let {
+                            withContext(Dispatchers.Main) {
+                                loadingDialog.dismissDialog()
 
-                            Toast.makeText(
+                                Toast.makeText(
+                                    requireActivity(),
+                                    "Your account and all of its data was successfully deleted.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                val intent =
+                                    Intent(requireActivity(), LoginActivity::class.java).apply {
+                                        flags =
+                                            Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    }
+                                startActivity(intent)
+                                requireActivity().finish()
+                            }
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.Main) {
+                            toastErrorMessages(
                                 requireActivity(),
-                                "Your account and all of its data was successfully deleted.",
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            val intent =
-                                Intent(requireActivity(), LoginActivity::class.java).apply {
-                                    flags =
-                                        Intent.FLAG_ACTIVITY_NO_HISTORY or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                }
-                            startActivity(intent)
-                            requireActivity().finish()
-                        } else {
-                            loadingDialog.dismissDialog()
-
-                            Toast.makeText(
-                                requireActivity(),
-                                "Failed to delete account: ${task.exception}",
-                                Toast.LENGTH_LONG
-                            ).show()
+                                "Failed to delete your account: No internet connection found. Please check your connection.",
+                                "Failed to delete your account: ${error.message}",
+                            )
                         }
                     }
-                } else {
-                    loadingDialog.dismissDialog()
-
-                    Toast.makeText(
+                }
+            } catch (error: Exception) {
+                withContext(Dispatchers.Main) {
+                    toastErrorMessages(
                         requireActivity(),
-                        "Failed to delete account: Unable to re-authenticate user. Please sign out and sign back in to delete your account.",
-                        Toast.LENGTH_LONG
-                    ).show()
+                        "Failed to delete your account: No internet connection found. Please check your connection.",
+                        "Failed to delete your account: Unable to re-authenticate user. Please sign out and sign back in to delete your account.",
+                    )
                 }
             }
+        }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * ViewModel to pass on the Firebase Realtime Database data directly into the View.
+ * ViewModel to pass the Firebase Realtime Database data to the repository.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -9,43 +9,28 @@
 
 package ca.neunition.ui.main.viewmodel
 
-import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import ca.neunition.data.remote.response.Users
-import ca.neunition.ui.main.livedata.FirebaseDatabaseLiveData
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
+import ca.neunition.data.remote.response.User
+import ca.neunition.data.repository.FirebaseDatabaseRepository
 
 class FirebaseDatabaseViewModel(
-    private val UID: String = Firebase.auth.currentUser!!.uid,
-    private val USERS_REF: DatabaseReference = Firebase.database.getReference("/users/$UID")
-): ViewModel() {
-    private val liveData: FirebaseDatabaseLiveData = FirebaseDatabaseLiveData(USERS_REF)
-    private val usersLiveData: MediatorLiveData<Users?> = MediatorLiveData()
+    private val databaseRepository: FirebaseDatabaseRepository = FirebaseDatabaseRepository()
+) : ViewModel() {
 
-    init {
-        usersLiveData.addSource(liveData) { dataSnapshot ->
-            if (dataSnapshot != null) {
-                usersLiveData.postValue(dataSnapshot.getValue(Users::class.java))
-            } else {
-                usersLiveData.value = null
-            }
-        }
+    fun firebaseUserData(): LiveData<User?> {
+        return databaseRepository.userDataFromFirebase()
     }
 
-    fun getUsersLiveData() = usersLiveData
-
-    fun updateChildValues(childVal: String, newVal: String) {
-        USERS_REF.child(childVal).setValue(newVal)
+    fun updateChildValue(childVal: String, newVal: String) {
+        return databaseRepository.setNewChildValue(childVal, newVal)
     }
 
-    fun updateChildValues(childVal: String, newVal: Double) {
-        USERS_REF.child(childVal).setValue(newVal)
+    fun updateChildValue(childVal: String, newVal: Double) {
+        return databaseRepository.setNewChildValue(childVal, newVal)
     }
 
-    fun removeUsersLiveData() {
-        USERS_REF.removeValue()
+    fun removeUser() {
+        return databaseRepository.removeUserFromDatabase()
     }
 }

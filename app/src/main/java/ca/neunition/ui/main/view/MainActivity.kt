@@ -21,7 +21,6 @@ import android.provider.OpenableColumns
 import android.text.SpannableString
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageButton
@@ -38,10 +37,7 @@ import ca.neunition.di.NotificationsClass
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.ViewPager2Adapter
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.Constants
-import ca.neunition.util.changeStatusBarColor
-import ca.neunition.util.isOnline
-import ca.neunition.util.spannableFactory
+import ca.neunition.util.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -147,10 +143,10 @@ class MainActivity : AppCompatActivity() {
 
         // Obtain a new or prior instance of FirebaseDatabaseViewModel according to the lifecycle component from the ViewModelProvider class
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
-        firebaseDatabaseViewModel.getUsersLiveData().observe(this) { users ->
-            if (users != null) {
+        firebaseDatabaseViewModel.firebaseUserData().observe(this) { user ->
+            if (user != null) {
                 fullNameTextView.setText(
-                    SpannableString(users.fullName),
+                    SpannableString(user.fullName),
                     TextView.BufferType.SPANNABLE
                 )
 
@@ -158,7 +154,7 @@ class MainActivity : AppCompatActivity() {
                     Glide.get(applicationContext).clearDiskCache()
                 }
 
-                val imgUrl = users.profileImageUrl
+                val imgUrl = user.profileImageUrl
                 if (imgUrl != "" && currentProfileImageUrl != imgUrl) {
                     currentProfileImageUrl = imgUrl
                     // Min version 384px x 384px
@@ -220,9 +216,9 @@ class MainActivity : AppCompatActivity() {
                     profileImageLauncher.launch(intent)
                 }
                 .setNegativeButton("remove") { _, _ ->
-                    Firebase.storage.getReference("/profile_pictures/${Constants.FIREBASE_AUTH.currentUser?.uid}")
+                    Firebase.storage.getReference("/profile_pictures/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
                         .delete()
-                    firebaseDatabaseViewModel.updateChildValues("profileImageUrl", "")
+                    firebaseDatabaseViewModel.updateChildValue("profileImageUrl", "")
                     profileImageView.setImageResource(R.drawable.default_profile)
                 }
                 .setNeutralButton("cancel",
@@ -261,11 +257,11 @@ class MainActivity : AppCompatActivity() {
      */
     private fun uploadProfileImage(profileImageUri: Uri) = CoroutineScope(Dispatchers.IO).launch {
         try {
-            val filename: String = Constants.FIREBASE_AUTH.currentUser?.uid ?: ""
+            val filename: String = Constants.FIREBASE_AUTH.currentUser!!.uid
             val ref: StorageReference = storage.getReference("/profile_pictures/$filename")
             ref.putFile(profileImageUri).await()
             ref.downloadUrl.await().let {
-                firebaseDatabaseViewModel.updateChildValues("profileImageUrl", it.toString())
+                firebaseDatabaseViewModel.updateChildValue("profileImageUrl", it.toString())
             }
             withContext(Dispatchers.Main) {
                 loadingDialog.dismissDialog()
@@ -273,19 +269,11 @@ class MainActivity : AppCompatActivity() {
         } catch (error: Exception) {
             withContext(Dispatchers.Main) {
                 loadingDialog.dismissDialog()
-                if (!isOnline(applicationContext)) {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Failed to upload image: No internet connection found. Please check your connection.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "${error.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                toastErrorMessages(
+                    this@MainActivity,
+                    "Failed to upload image: No internet connection found. Please check your connection.",
+                    "${error.message}"
+                )
             }
         }
     }
