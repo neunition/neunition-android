@@ -63,7 +63,6 @@ class FirebaseAuthRepository(private val application: Application) {
                             "",
                             profileImageUrl,
                             "",
-                            ""
                         )
                         user.isNew = isNewUser
                         withContext(Dispatchers.Main) {

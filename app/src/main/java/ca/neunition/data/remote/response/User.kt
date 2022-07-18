@@ -21,7 +21,6 @@ data class User(
     val previousRecords: String = "",
     val profileImageUrl: String = "",
     val recipesJsonData: String = "",
-    val jsonTimeStamp: String = "",
     @get:Exclude var isAuthenticated: Boolean = false,
     @get:Exclude var isNew: Boolean = false,
     @get:Exclude var isCreated: Boolean = false,
