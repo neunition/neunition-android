@@ -38,6 +38,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_bold"
+                android:shadowColor="@android:color/black"
+                android:shadowDx="4"
+                android:shadowDy="5"
+                android:shadowRadius="8"
                 android:text="@string/title_of_recipe"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                 android:textColor="@android:color/white" />
@@ -48,6 +52,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/roboto_bold"
+                android:shadowColor="@android:color/black"
+                android:shadowDx="3"
+                android:shadowDy="5"
+                android:shadowRadius="6"
                 android:text="@string/zero_score"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
                 android:textColor="@android:color/white" />

@@ -11,8 +11,6 @@
 package ca.neunition.ui.main.adapter
 
 import android.content.Context
-import android.graphics.Color
-import android.graphics.PorterDuff
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
@@ -62,11 +60,6 @@ class RecipeCardAdapter(
             .into(holder.recipeImageView)
 
         holder.apply {
-            recipeImageView.setColorFilter(
-                Color.rgb(123, 123, 123),
-                PorterDuff.Mode.MULTIPLY
-            )
-
             recipeTitleView.setText(
                 SpannableString(currentRecipe.recipeTitle.trimRecipeTitle()),
                 TextView.BufferType.SPANNABLE
