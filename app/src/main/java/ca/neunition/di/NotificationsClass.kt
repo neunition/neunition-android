@@ -113,7 +113,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
                 context,
                 Constants.BREAKFAST_NOTIFICATION_ID,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_IMMUTABLE
             )
         }
 
@@ -146,7 +146,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
                 context,
                 Constants.LUNCH_NOTIFICATION_ID,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_IMMUTABLE
             )
         }
 
@@ -179,7 +179,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
                 context,
                 Constants.DINNER_NOTIFICATION_ID,
                 intent,
-                PendingIntent.FLAG_UPDATE_CURRENT
+                PendingIntent.FLAG_IMMUTABLE
             )
         }
 
