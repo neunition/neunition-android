@@ -13,6 +13,8 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -20,6 +22,7 @@ import ca.neunition.R
 import ca.neunition.ui.main.view.SplashActivity
 import ca.neunition.util.Constants
 
+@RequiresApi(Build.VERSION_CODES.O)
 class DinnerAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val i = Intent(context, SplashActivity::class.java).apply {
@@ -30,7 +33,7 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
             context,
             0,
             i,
-            PendingIntent.FLAG_UPDATE_CURRENT
+            PendingIntent.FLAG_IMMUTABLE
         )
 
         val builder = NotificationCompat.Builder(context, Constants.DINNER_CHANNEL_ID)
