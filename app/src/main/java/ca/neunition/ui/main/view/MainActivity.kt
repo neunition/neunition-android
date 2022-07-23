@@ -157,7 +157,6 @@ class MainActivity : AppCompatActivity() {
                 val imgUrl = user.profileImageUrl
                 if (imgUrl != "" && currentProfileImageUrl != imgUrl) {
                     currentProfileImageUrl = imgUrl
-                    // Min version 384px x 384px
                     Glide.with(applicationContext)
                         .load(currentProfileImageUrl)
                         .apply(RequestOptions.skipMemoryCacheOf(true))
