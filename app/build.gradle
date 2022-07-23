@@ -24,8 +24,6 @@ android {
         vectorDrawables.useSupportLibrary = true
         buildConfigField 'String', 'EDAMAM_API_ID', EDAMAM_API_ID
         buildConfigField 'String', 'EDAMAM_API_KEY', EDAMAM_API_KEY
-        buildConfigField 'String', 'RECAPTCHA_SITE_KEY', RECAPTCHA_SITE_KEY
-        buildConfigField 'String', 'RECAPTCHA_SECRET_KEY', RECAPTCHA_SECRET_KEY
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -81,7 +79,6 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
     implementation 'androidx.cardview:cardview:1.0.0'
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:18.0.0'
-    implementation 'com.google.android.gms:play-services-safetynet:18.0.1'
     implementation 'org.adblockplus:adblock-android:4.4.0'
     implementation 'org.adblockplus:adblock-android-settings:4.4.0'
     implementation 'org.adblockplus:adblock-android-webview:4.4.0'
