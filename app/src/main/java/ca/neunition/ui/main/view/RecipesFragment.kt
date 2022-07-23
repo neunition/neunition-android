@@ -277,7 +277,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     }
 
     /**
-     * Check if the first images returns a HTTP 403 error and if it does, clear the saved recipes.
+     * Check if the first image returns a HTTP 403 error and if it does, clear the saved recipes.
      */
     private fun verifyJsonData() {
         try {
