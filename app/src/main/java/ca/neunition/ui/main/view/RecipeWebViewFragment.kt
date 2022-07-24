@@ -9,7 +9,9 @@
 
 package ca.neunition.ui.main.view
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -22,30 +24,45 @@ import androidx.fragment.app.FragmentManager
 import ca.neunition.R
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.adblockplus.libadblockplus.android.AdblockEngine
+import org.adblockplus.libadblockplus.android.AndroidHttpClientResourceWrapper
 import org.adblockplus.libadblockplus.android.settings.AdblockHelper
 import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage
 import org.adblockplus.libadblockplus.android.webview.AdblockWebView
 
+@SuppressLint("SourceLockedOrientationActivity")
 class RecipeWebViewFragment(private val recipeTitle: String, private var recipeUrl: String) : DialogFragment() {
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: LinearProgressIndicator
     private var recipeWebView: AdblockWebView? = null
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.AppTheme_FullScreenDialog)
+
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+
         if (!AdblockHelper.get().isInit) {
-            val adblockBasePath = requireContext().getDir(AdblockEngine.BASE_PATH_DIRECTORY, Context.MODE_PRIVATE).absolutePath
-            AdblockHelper.get().init(requireContext(), adblockBasePath, AdblockHelper.PREFERENCE_NAME)
-            AdblockHelper.get().provider.retain(false);
+            val adblockBasePath = requireActivity().getDir(AdblockEngine.BASE_PATH_DIRECTORY, Context.MODE_PRIVATE).absolutePath
+
+            val map = HashMap<String, Int>()
+            map[AndroidHttpClientResourceWrapper.EASYLIST] = R.raw.easylist
+
+            AdblockHelper
+                .get()
+                .init(requireActivity(), adblockBasePath, AdblockHelper.PREFERENCE_NAME)
+                .preloadSubscriptions(AdblockHelper.PRELOAD_PREFERENCE_NAME, map)
         }
+
+        AdblockHelper.get().provider.retain(true)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         return inflater.inflate(R.layout.fragment_recipe_web_view, container, false)
     }
 
@@ -56,15 +73,12 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         progressBar = view.findViewById(R.id.recipe_progress_bar)
         recipeWebView = view.findViewById(R.id.recipe_webview)
 
-        val adBlockStorage = AdblockHelper.get().storage
-
-        var adBlockSettings = adBlockStorage.load()
+        var adBlockSettings = AdblockHelper.get().storage.load()
         if (adBlockSettings == null) {
-            adBlockSettings = AdblockSettingsStorage.getDefaultSettings(requireContext())
+            adBlockSettings = AdblockSettingsStorage.getDefaultSettings(requireActivity())
         }
-
         adBlockSettings.isAdblockEnabled = true
-        adBlockStorage.save(adBlockSettings)
+        AdblockHelper.get().storage.save(adBlockSettings)
 
         toolbar.also {
             it.setNavigationOnClickListener {
@@ -94,6 +108,8 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
                 loadsImagesAutomatically = true
             }
             it.setProvider(AdblockHelper.get().provider)
+            it.siteKeysConfiguration = AdblockHelper.get().siteKeysConfiguration
+            it.enableJsInIframes(true)
         }
 
         recipeWebView?.webViewClient = object : WebViewClient() {
@@ -111,32 +127,68 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         recipeWebView?.loadUrl(recipeUrl)
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        clearRecipeWebView()
+        clearAdAndWebStorage()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        AdblockHelper.get().provider.release()
+        clearRecipeWebView()
+        clearAdAndWebStorage()
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        clearRecipeWebView()
+        clearAdAndWebStorage()
+    }
+
+    /**
+     * Display the recipe in a webview.
+     *
+     * @param fragmentManager the fragment that will contain the full screen dialog fragment
+     *
+     * @return the webview fragment hosting the recipe
+     */
     fun display(fragmentManager: FragmentManager): RecipeWebViewFragment {
         val fullScreenDialog = RecipeWebViewFragment(recipeTitle, recipeUrl)
         fullScreenDialog.show(fragmentManager, FULL_SCREEN_DIALOG_TAG)
         return fullScreenDialog
     }
 
+    /**
+     * Clear webview memory.
+     */
     private fun clearRecipeWebView() {
         recipeWebView?.apply {
+            stopLoading()
             clearCache(true)
             clearHistory()
             clearFormData()
             clearSslPreferences()
             invalidate()
+            removeAllViews()
             destroy()
         }
         recipeWebView = null
     }
 
+    /**
+     * Clear cookies and other data from webview.
+     */
     private fun clearAdAndWebStorage() {
-        AdblockHelper.get().provider.release()
         CookieManager.getInstance().removeAllCookies(null)
         CookieManager.getInstance().flush()
         WebStorage.getInstance().deleteAllData()
     }
 
     companion object {
-        private const val FULL_SCREEN_DIALOG_TAG = "FULL_SCREEN_DIALOG"
+        private val FULL_SCREEN_DIALOG_TAG: String by lazy { "FULL_SCREEN_DIALOG" }
     }
 }
