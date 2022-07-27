@@ -10,6 +10,7 @@
 package ca.neunition.ui.main.view
 
 import android.annotation.SuppressLint
+import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
@@ -23,14 +24,13 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
 import ca.neunition.R
 import com.google.android.material.progressindicator.LinearProgressIndicator
-import org.adblockplus.libadblockplus.android.AdblockEngine
 import org.adblockplus.libadblockplus.android.AndroidHttpClientResourceWrapper
 import org.adblockplus.libadblockplus.android.settings.AdblockHelper
 import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage
 import org.adblockplus.libadblockplus.android.webview.AdblockWebView
 
 @SuppressLint("SourceLockedOrientationActivity")
-class RecipeWebViewFragment(private val recipeTitle: String, private var recipeUrl: String) : DialogFragment() {
+class RecipeWebViewFragment(private val recipeTitle: String, private var recipeUrl: String) : DialogFragment(), ComponentCallbacks2 {
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: LinearProgressIndicator
     private var recipeWebView: AdblockWebView? = null
@@ -47,18 +47,23 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
         if (!AdblockHelper.get().isInit) {
-            val adblockBasePath = requireActivity().getDir(AdblockEngine.BASE_PATH_DIRECTORY, Context.MODE_PRIVATE).absolutePath
-
             val map = HashMap<String, Int>()
             map[AndroidHttpClientResourceWrapper.EASYLIST] = R.raw.easylist
 
             AdblockHelper
                 .get()
-                .init(requireActivity(), adblockBasePath, AdblockHelper.PREFERENCE_NAME)
+                .init(requireActivity(), requireActivity().filesDir.absolutePath, AdblockHelper.PREFERENCE_NAME)
                 .preloadSubscriptions(AdblockHelper.PRELOAD_PREFERENCE_NAME, map)
         }
 
         AdblockHelper.get().provider.retain(true)
+
+        var adBlockSettings = AdblockHelper.get().storage.load()
+        if (adBlockSettings == null) {
+            adBlockSettings = AdblockSettingsStorage.getDefaultSettings(requireActivity())
+        }
+        adBlockSettings.isAdblockEnabled = true
+        AdblockHelper.get().storage.save(adBlockSettings)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -72,13 +77,6 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         toolbar = view.findViewById(R.id.full_screen_dialog_toolbar)
         progressBar = view.findViewById(R.id.recipe_progress_bar)
         recipeWebView = view.findViewById(R.id.recipe_webview)
-
-        var adBlockSettings = AdblockHelper.get().storage.load()
-        if (adBlockSettings == null) {
-            adBlockSettings = AdblockSettingsStorage.getDefaultSettings(requireActivity())
-        }
-        adBlockSettings.isAdblockEnabled = true
-        AdblockHelper.get().storage.save(adBlockSettings)
 
         toolbar.also {
             it.setNavigationOnClickListener {
@@ -94,18 +92,15 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
             it.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             it.scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
             it.settings.apply {
-                allowFileAccess = false
-                allowContentAccess = false
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
-                cacheMode = WebSettings.LOAD_NO_CACHE
-                useWideViewPort = true
-                loadWithOverviewMode = true
-                setSupportZoom(true)
+                allowFileAccess = true
                 builtInZoomControls = true
+                cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
                 displayZoomControls = false
-                loadsImagesAutomatically = true
+                domStorageEnabled = true
+                javaScriptEnabled = true
+                loadWithOverviewMode = true
+                mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                useWideViewPort = true
             }
             it.setProvider(AdblockHelper.get().provider)
             it.siteKeysConfiguration = AdblockHelper.get().siteKeysConfiguration
@@ -125,6 +120,12 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         }
 
         recipeWebView?.loadUrl(recipeUrl)
+    }
+
+    override fun onTrimMemory(level: Int) {
+        if (level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL && AdblockHelper.get().isInit) {
+            AdblockHelper.get().provider.engine.onLowMemory()
+        }
     }
 
     override fun onDestroyView() {
@@ -168,6 +169,7 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
     private fun clearRecipeWebView() {
         recipeWebView?.apply {
             stopLoading()
+            tag = null
             clearCache(true)
             clearHistory()
             clearFormData()
