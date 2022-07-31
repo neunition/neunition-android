@@ -16,6 +16,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.view.animation.LayoutAnimationController
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.TextView
@@ -50,33 +52,29 @@ import kotlin.math.absoluteValue
 class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
 
-    private lateinit var loadingDialog: LoadingDialog
-
-    // Add ingredient to list
-    private lateinit var ingredientTextView: AppCompatEditText
-    private lateinit var weightTextView: AppCompatEditText
-    private lateinit var weightDropDown: TextInputLayout
-    private lateinit var autoCompleteWeights: MaterialAutoCompleteTextView
-    private lateinit var addButton: AppCompatButton
-
-    // Ingredient with its CO₂-eq score
-    private lateinit var currentEmissionsTextView: AppCompatTextView
-    private var currentEmissionsScore = BigDecimal("0.00")
-    private var ingredientEmissionsList = ArrayList<IngredientCard>()
-    private val adapter = IngredientAdapter(ingredientEmissionsList, this)
-    private lateinit var recyclerView: RecyclerView
-
-    private var manualSubmission = true
-
-    private lateinit var uploadIngredientsPhoto: AppCompatImageButton
-
-    // GHG scores
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
     private var monthlyScore = BigDecimal("0.00")
     private var yearlyScore = BigDecimal("0.00")
-    private lateinit var addEmissionsButton: AppCompatImageButton
 
+    private lateinit var loadingDialog: LoadingDialog
+
+    private lateinit var ingredientTextView: AppCompatEditText
+    private lateinit var weightTextView: AppCompatEditText
+    private lateinit var weightDropDown: TextInputLayout
+    private lateinit var autoCompleteWeights: MaterialAutoCompleteTextView
+    private lateinit var addIngredientButton: AppCompatButton
+
+    private lateinit var currentEmissionsTextView: AppCompatTextView
+    private var currentEmissionsScore = BigDecimal("0.00")
+    private var ingredientsEmissionsList = ArrayList<IngredientCard>()
+    private lateinit var ingredientsRecyclerView: RecyclerView
+    private lateinit var animationController: LayoutAnimationController
+
+    private var manualSubmission = true
+
+    private lateinit var uploadIngredientsPhoto: AppCompatImageButton
+    private lateinit var addEmissionsButton: AppCompatImageButton
     private lateinit var clearAllButton: AppCompatImageButton
 
     override fun onCreateView(
@@ -84,7 +82,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_ingredients_emissions, container, false)
     }
 
@@ -94,7 +91,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         loadingDialog = LoadingDialog(requireActivity())
 
         // Get the user's info from the Firebase Realtime Database
-        firebaseDatabaseViewModel = ViewModelProvider(this).get(FirebaseDatabaseViewModel::class.java)
+        firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 dailyScore = BigDecimal(user.daily.toString())
@@ -108,9 +105,13 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         weightTextView = view.findViewById(R.id.weight_text_view)
         weightDropDown = view.findViewById(R.id.drop_down_menu)
         autoCompleteWeights = view.findViewById(R.id.auto_complete_weights)
-        addButton = view.findViewById(R.id.plus_button)
+        addIngredientButton = view.findViewById(R.id.plus_button)
+
         currentEmissionsTextView = view.findViewById(R.id.current_score_text_view)
-        recyclerView = view.findViewById(R.id.ingredients_recycler_view)
+        ingredientsRecyclerView = view.findViewById(R.id.ingredients_recycler_view)
+
+        animationController = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.ingredients_recycler_view_animation)
+
         uploadIngredientsPhoto = view.findViewById(R.id.upload_ingredients_photo)
         addEmissionsButton = view.findViewById(R.id.add_emissions_button)
         clearAllButton = view.findViewById(R.id.clear_all_button)
@@ -119,8 +120,15 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, Constants.WEIGHT_OPTIONS)
         (weightDropDown.editText as? AutoCompleteTextView)?.setAdapter(weightsAdapter)
 
+        ingredientsRecyclerView.apply {
+            adapter = IngredientAdapter(ingredientsEmissionsList, this@IngredientsEmissionsFragment)
+            layoutManager = LinearLayoutManager(requireActivity())
+            setHasFixedSize(true)
+            layoutAnimation = animationController
+        }
+
         // Add the ingredient to the RecyclerView
-        addButton.setOnClickListener {
+        addIngredientButton.setOnClickListener {
             this.requireView().hideKeyboard()
             verifyAndCalculateIngredientCO2()
         }
@@ -149,7 +157,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                         // Proceed and check what the selected image was
                         val ingrImageUri = res.data!!.data!!
                         val image = InputImage.fromFilePath(
-                            requireActivity().applicationContext,
+                            requireActivity(),
                             ingrImageUri
                         )
                         recognizer.process(image)
@@ -161,9 +169,10 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                                         var ingredientWeight = 0.0
                                         var ingredientMeasurement = ""
                                         for (element in line.elements) {
-                                            val elementText =
-                                                element.text.replace("[^A-Za-z0-9 ]".toRegex(), "")
-                                                    .lowercase()
+                                            val elementText = element.text
+                                                .replace("[^A-Za-z0-9 ]".toRegex(), "")
+                                                .lowercase()
+
                                             if (element.text.matches("-?\\d+(\\.\\d+)?".toRegex())) {
                                                 ingredientWeight += element.text.toDouble().absoluteValue
                                             } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
@@ -174,6 +183,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                                                 ingredient = elementText.trim()
                                             }
                                         }
+
                                         if ((ingredientMeasurement == "egg" || ingredientMeasurement == "eggs") && ingredientWeight != 0.0) {
                                             entireIngredientCO2Calculation(
                                                 ingredientMeasurement,
@@ -195,6 +205,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                                         }
                                     }
                                 }
+
                                 loadingDialog.dismissDialog()
                             }
                             .addOnFailureListener { e ->
@@ -208,14 +219,13 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                     }
                 }
             }
-        // Automatically add ingredients to the RecyclerView
+
         uploadIngredientsPhoto.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK)
             intent.type = "image/*"
             ingredientsImageLauncher.launch(intent)
         }
 
-        // Add emissions to user's daily, weekly, and monthly scores
         addEmissionsButton.setOnClickListener {
             updateUserEmissions()
         }
@@ -224,12 +234,33 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
             clearRecyclerView()
         }
 
-        // Hide the keyboard when the user picks the weight type
         autoCompleteWeights.setOnFocusChangeListener { v, hasFocus ->
             if (hasFocus) {
-                v.hideKeyboard() // Using view extension function
+                v.hideKeyboard()
             }
         }
+    }
+
+    /**
+     * Remove an ingredient from the RecyclerView.
+     *
+     * @param position the specific ingredient to be removed
+     */
+    override fun onDeleteClick(position: Int) {
+        currentEmissionsScore =
+            currentEmissionsScore.subtract(ingredientsEmissionsList[position].weight)
+        currentEmissionsScore = currentEmissionsScore.setScale(2, RoundingMode.HALF_UP)
+        currentEmissionsTextView.setText(
+            scoreColourChange(
+                requireActivity(),
+                "Current GHG Emissions:",
+                currentEmissionsScore,
+                "1.08",
+                "1.61"
+            ), TextView.BufferType.SPANNABLE
+        )
+        ingredientsEmissionsList.removeAt(position)
+        ingredientsRecyclerView.adapter?.notifyItemRemoved(position)
     }
 
     /**
@@ -374,10 +405,11 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
 
     private fun addIngredientGHGCard(noIngrMsg: String, scoreToDisplay: BigDecimal, italicizeText: Boolean) {
         val item = IngredientCard(noIngrMsg, scoreToDisplay, italicizeText)
-        ingredientEmissionsList += item
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireActivity())
-        recyclerView.setHasFixedSize(true)
+        ingredientsEmissionsList.add(item)
+        ingredientsRecyclerView.apply {
+            adapter?.notifyItemInserted(ingredientsEmissionsList.size - 1)
+            scheduleLayoutAnimation()
+        }
     }
 
     /**
@@ -399,7 +431,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 "Thank you for your submission! Your GHG emissions have successfully been updated.",
                 Toast.LENGTH_LONG
             ).show()
-        } else if (ingredientEmissionsList.isNotEmpty() && isOnline(requireActivity().applicationContext)) {
+        } else if (ingredientsEmissionsList.isNotEmpty() && isOnline(requireActivity().applicationContext)) {
             clearRecyclerView()
             Toast.makeText(
                 requireActivity(),
@@ -422,8 +454,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         ingredientTextView.setText("")
         weightTextView.setText("")
         autoCompleteWeights.text = null
-        ingredientEmissionsList.clear()
-        recyclerView.adapter?.notifyDataSetChanged()
+        ingredientsEmissionsList.clear()
+        ingredientsRecyclerView.adapter?.notifyDataSetChanged()
         currentEmissionsScore = BigDecimal("0.00")
         currentEmissionsTextView.setText(
             scoreColourChange(
@@ -434,27 +466,5 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 "1.61"
             ), TextView.BufferType.SPANNABLE
         )
-    }
-
-    /**
-     * Remove an ingredient from the RecyclerView.
-     *
-     * @param position the specific ingredient to be removed
-     */
-    override fun onDeleteClick(position: Int) {
-        currentEmissionsScore =
-            currentEmissionsScore.subtract(ingredientEmissionsList[position].weight)
-        currentEmissionsScore = currentEmissionsScore.setScale(2, RoundingMode.HALF_UP)
-        currentEmissionsTextView.setText(
-            scoreColourChange(
-                requireActivity(),
-                "Current GHG Emissions:",
-                currentEmissionsScore,
-                "1.08",
-                "1.61"
-            ), TextView.BufferType.SPANNABLE
-        )
-        ingredientEmissionsList.removeAt(position)
-        adapter.notifyItemRemoved(position)
     }
 }
