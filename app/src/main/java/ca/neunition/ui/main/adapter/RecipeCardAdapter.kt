@@ -18,6 +18,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
@@ -35,13 +36,11 @@ import java.math.BigDecimal
 
 class RecipeCardAdapter(
     private val recipesList: ArrayList<RecipeCard>,
-    private val listener: OnRecipeClickListener
+    private val onClickListener: OnClickListener,
 ) : RecyclerView.Adapter<RecipeCardAdapter.RecipeCardViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeCardViewHolder {
-        return RecipeCardViewHolder(LayoutInflater.from(parent.context).inflate(
-            R.layout.recipe_card,
-            parent,
-            false)
+        return RecipeCardViewHolder(
+            LayoutInflater.from(parent.context).inflate(R.layout.recipe_card, parent, false)
         )
     }
 
@@ -53,6 +52,7 @@ class RecipeCardAdapter(
             Glide.get(holder.itemView.context).clearDiskCache()
         }
         Glide.with(holder.itemView.context)
+            .asBitmap()
             .load(currentRecipe.recipeImage)
             .error(R.drawable.ic_baseline_error)
             .apply(RequestOptions.skipMemoryCacheOf(true))
@@ -74,33 +74,40 @@ class RecipeCardAdapter(
 
     override fun getItemCount() = recipesList.size
 
-    inner class RecipeCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    inner class RecipeCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
         val recipeImageView: AppCompatImageView =
             itemView.findViewById(R.id.recipe_picture_image_view)
         val recipeTitleView: AppCompatTextView = itemView.findViewById(R.id.recipe_title_text_view)
         val recipeScoreView: AppCompatTextView =
             itemView.findViewById(R.id.recipe_ghg_score_text_view)
+        private val recipeAddEmissionsButton: AppCompatImageButton =
+            itemView.findViewById(R.id.recipe_add_emissions_button)
 
         init {
             recipeTitleView.setSpannableFactory(spannableFactory)
             recipeScoreView.setSpannableFactory(spannableFactory)
             itemView.setOnClickListener(this)
+            recipeAddEmissionsButton.setOnClickListener(this)
         }
 
-        override fun onClick(v: View?) {
+        override fun onClick(view: View) {
             val position = absoluteAdapterPosition
-            if (position != RecyclerView.NO_POSITION) {
-                listener.onRecipeClick(position)
+            if (view == itemView && position != RecyclerView.NO_POSITION) {
+                onClickListener.onRecipeClick(position)
+            } else if (view == recipeAddEmissionsButton && position != RecyclerView.NO_POSITION) {
+                onClickListener.onAddEmissionsClick(position)
             }
         }
     }
 
-    interface OnRecipeClickListener {
+    interface OnClickListener {
         fun onRecipeClick(position: Int)
+        fun onAddEmissionsClick(position: Int)
     }
 
-    private fun String?.trimRecipeTitle(): CharSequence = if (this!!.length >= 26) {
-        "${this.subSequence(0, 26).trim()}..."
+    private fun String?.trimRecipeTitle(): CharSequence = if (this!!.length >= 22) {
+        "${this.subSequence(0, 22).trim()}..."
     } else {
         this.toString().trim()
     }

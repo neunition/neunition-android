@@ -34,4 +34,5 @@
     <string name="image_of_the_recipe">Image of the recipe</string>
     <string name="progress_bar_recipe_description">A indeterminate progress bar for loading the recipe.</string>
     <string name="random_selection_of_recipes">Get a random selection of recipes</string>
+    <string name="add_recipe_ghg">Add the greenhouse gas emissions of this recipe to your current greenhouse gas emissions records.</string>
 </resources>

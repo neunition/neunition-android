@@ -16,12 +16,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
+import android.view.animation.LayoutAnimationController
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
@@ -40,13 +43,14 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.HttpURLConnection
 import java.net.URL
 
-class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
+class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
     private lateinit var edamamViewModel: EdamamViewModel
 
@@ -72,6 +76,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     private var currentJSONObject = ""
     private lateinit var recipesRecyclerView: RecyclerView
     private var recipesList = ArrayList<RecipeCard>()
+    private lateinit var animationController: LayoutAnimationController
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -92,6 +97,8 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
         labelsTextView = view.findViewById(R.id.select_label_text_view)
         recipesRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
 
+        animationController = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.recipes_recycler_view_animation)
+
         firebaseDatabaseViewModel = ViewModelProvider(requireActivity())[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
@@ -99,20 +106,14 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                 weeklyScore = BigDecimal(user.weekly.toString())
                 monthlyScore = BigDecimal(user.monthly.toString())
                 yearlyScore = BigDecimal(user.yearly.toString())
-                requireActivity().runOnUiThread(kotlinx.coroutines.Runnable {
-                    run {
-                        if (currentJSONObject != user.recipesJsonData) {
-                            if (user.recipesJsonData != "") {
-                                recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
-                                verifyJsonData()
-                            }
-                            initRecyclerView()
-                            currentJSONObject = user.recipesJsonData
-                        } else if (user.recipesJsonData == "") {
-                            initRecyclerView()
-                        }
+                if (currentJSONObject != user.recipesJsonData) {
+                    if (user.recipesJsonData != "") {
+                        recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
+                        verifyJsonData()
                     }
-                })
+                    currentJSONObject = user.recipesJsonData
+                }
+                initRecyclerView()
             }
         }
 
@@ -277,6 +278,56 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
     }
 
     /**
+     * Open a full screen dialog that will show the recipe.
+     *
+     * @param position the specific row to open the url
+     */
+    override fun onRecipeClick(position: Int) {
+        RecipeWebViewFragment(
+            recipesList[position].recipeTitle.toString(),
+            recipesList[position].recipeUrl.toString()
+        ).display(childFragmentManager)
+    }
+
+    override fun onAddEmissionsClick(position: Int) {
+        val recipeName = recipesList[position].recipeTitle.toString()
+        val score = recipesList[position].recipeScore
+        val builder = MaterialAlertDialogBuilder(requireContext())
+        builder.setTitle(recipeName)
+            .setCancelable(false)
+            .setMessage("Are you sure you want to add $score kg of CO₂-eq to your GHG emissions records?")
+            .setPositiveButton("yes") { _, _ ->
+                if (isOnline(requireActivity().applicationContext)) {
+                    dailyScore = dailyScore.add(score)
+                    weeklyScore = weeklyScore.add(score)
+                    monthlyScore = monthlyScore.add(score)
+                    yearlyScore = yearlyScore.add(score)
+                    firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
+                    firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
+                    Toast.makeText(
+                        requireActivity(),
+                        "Your GHG emissions have successfully been updated.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    onAddEmissionsClick(position)
+                    Toast.makeText(
+                        requireActivity(),
+                        "No internet connection found. Please check your connection.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .setNegativeButton("cancel", DialogInterface.OnClickListener { _, _ ->
+                return@OnClickListener
+            })
+            .create()
+            .show()
+    }
+
+    /**
      * Check if the first image returns a HTTP 403 error and if it does, clear the saved recipes.
      */
     private fun verifyJsonData() {
@@ -289,7 +340,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
                     connectTimeout = 5000
                     requestMethod = "GET"
                 }
-                CoroutineScope(Dispatchers.IO).launch {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                     val responseCode = connection.responseCode
                     if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
                         firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
@@ -313,7 +364,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
         recipesRecyclerView.apply {
             adapter = RecipeCardAdapter(recipesList, this@RecipesFragment)
             layoutManager = GridLayoutManager(requireActivity(), 2)
+            layoutAnimation = animationController
             adapter?.notifyDataSetChanged()
+            scheduleLayoutAnimation()
         }
     }
 
@@ -327,57 +380,6 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnRecipeClickListener {
         recipesList.clear()
         recipesRecyclerView.adapter?.notifyDataSetChanged()
         firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
-    }
-
-    /**
-     * Open a full screen dialog that will show the recipe.
-     *
-     * @param position the specific row to open the url
-     */
-    override fun onRecipeClick(position: Int) {
-        RecipeWebViewFragment(
-            recipesList[position].recipeTitle.toString(),
-            recipesList[position].recipeUrl.toString()
-        ).display(childFragmentManager)
-    }
-
-    /**
-     * Display a dialog to show the name of the food and the estimated GHG emissions score for the
-     * food to be added to the user's total periodical GHG emissions.
-     *
-     * @param meal the name of the food
-     * @param score the GHG emissions score for the food
-     */
-    private fun addGHGEmissions(meal: String, score: BigDecimal) {
-        val mealConfirmBuilder = MaterialAlertDialogBuilder(requireContext())
-        mealConfirmBuilder.apply {
-            setCancelable(false)
-            setMessage("Food: $meal\nGHG Emissions: $score kg of CO₂-eq")
-            setPositiveButton("submit") { _, _ ->
-                if (isOnline(requireActivity().applicationContext)) {
-                    dailyScore = dailyScore.add(score)
-                    weeklyScore = weeklyScore.add(score)
-                    monthlyScore = monthlyScore.add(score)
-                    yearlyScore = yearlyScore.add(score)
-                    firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
-                    firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
-                } else {
-                    addGHGEmissions(meal, score)
-                    Toast.makeText(
-                        requireActivity(),
-                        "No internet connection found. Please check your connection.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-            setNegativeButton(
-                "cancel",
-                DialogInterface.OnClickListener { _, _ -> return@OnClickListener }
-            )
-            show()
-        }
     }
 
     /**

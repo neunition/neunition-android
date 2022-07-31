@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,14 +9,13 @@
     android:clickable="true"
     android:focusable="true"
     android:theme="@style/Theme.MaterialComponents.Light"
-    app:cardElevation="1dp"
+    app:cardElevation="2dp"
     app:strokeColor="@color/stroke_color"
     app:strokeWidth="1dp">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/recipe_picture_image_view"
@@ -24,27 +24,40 @@
             android:background="@android:color/darker_gray"
             android:contentDescription="@string/image_of_the_recipe"
             android:scaleType="fitXY"
-            android:src="@drawable/ic_baseline_error" />
+            android:src="@drawable/ic_baseline_error"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ImageContrastCheck" />
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:id="@+id/linearLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_alignBottom="@id/recipe_picture_image_view"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/recipe_add_emissions_button"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent">
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/recipe_title_text_view"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/roboto_bold"
+                android:paddingStart="0dp"
+                android:paddingEnd="3dp"
                 android:shadowColor="@android:color/black"
                 android:shadowDx="4"
                 android:shadowDy="5"
                 android:shadowRadius="8"
                 android:text="@string/title_of_recipe"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                tools:ignore="TextContrastCheck" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/recipe_ghg_score_text_view"
@@ -52,13 +65,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="@font/roboto_bold"
+                android:paddingStart="0dp"
+                android:paddingEnd="3dp"
                 android:shadowColor="@android:color/black"
                 android:shadowDx="3"
                 android:shadowDy="5"
                 android:shadowRadius="6"
                 android:text="@string/zero_score"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                tools:ignore="TextContrastCheck" />
         </LinearLayout>
-    </RelativeLayout>
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/recipe_add_emissions_button"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/recipe_add_emissions_button_touch_selector"
+            android:contentDescription="@string/add_recipe_ghg"
+            android:elevation="2dp"
+            android:src="@drawable/ic_baseline_add"
+            android:stateListAnimator="@null"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/linearLayout"
+            tools:ignore="TouchTargetSizeCheck,ImageContrastCheck" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>
