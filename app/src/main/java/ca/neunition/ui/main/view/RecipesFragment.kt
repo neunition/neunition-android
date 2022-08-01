@@ -40,10 +40,8 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -109,11 +107,14 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 if (currentJSONObject != user.recipesJsonData) {
                     if (user.recipesJsonData != "") {
                         recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
+                        recipesList = recipesList.sortedBy { it.recipeScore }.toCollection(ArrayList())
                         verifyJsonData()
                     }
+                    initRecyclerView()
                     currentJSONObject = user.recipesJsonData
+                } else if (user.recipesJsonData == "") {
+                    initRecyclerView()
                 }
-                initRecyclerView()
             }
         }
 
