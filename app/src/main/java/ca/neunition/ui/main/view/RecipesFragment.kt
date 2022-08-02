@@ -111,7 +111,6 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 if (currentJSONObject != user.recipesJsonData) {
                     if (user.recipesJsonData != "") {
                         recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
-                        recipesList = recipesList.sortedBy { it.recipeScore }.toCollection(ArrayList())
                         verifyJsonData()
                     }
                     initRecyclerView()
@@ -150,6 +149,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                         recipesList += item
                     }
 
+                    recipesList = recipesList.sortedBy { recipe -> recipe.recipeScore }.toCollection(ArrayList())
                     firebaseDatabaseViewModel.updateChildValue("recipesJsonData", jsonAdapter.toJson(recipesList))
 
                     loadingDialog.dismissDialog()
