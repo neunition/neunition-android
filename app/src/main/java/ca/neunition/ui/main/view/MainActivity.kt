@@ -61,7 +61,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
-    private lateinit var storage: FirebaseStorage
 
     private var currentProfileImageUrl = ""
 
@@ -84,8 +83,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         changeStatusBarColor()
-
-        storage = Firebase.storage
 
         loadingDialog = LoadingDialog(this)
 
@@ -257,7 +254,7 @@ class MainActivity : AppCompatActivity() {
     private fun uploadProfileImage(profileImageUri: Uri) = CoroutineScope(Dispatchers.IO).launch {
         try {
             val filename: String = Constants.FIREBASE_AUTH.currentUser!!.uid
-            val ref: StorageReference = storage.getReference("/profile_pictures/$filename")
+            val ref: StorageReference = FIREBASE_STORAGE.getReference("/profile_pictures/$filename")
             ref.putFile(profileImageUri).await()
             ref.downloadUrl.await().let {
                 firebaseDatabaseViewModel.updateChildValue("profileImageUrl", it.toString())
@@ -275,5 +272,9 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+    }
+
+    companion object {
+        private val FIREBASE_STORAGE: FirebaseStorage by lazy { Firebase.storage }
     }
 }

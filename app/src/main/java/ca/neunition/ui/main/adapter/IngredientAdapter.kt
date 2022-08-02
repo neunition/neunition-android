@@ -9,6 +9,10 @@
 
 package ca.neunition.ui.main.adapter
 
+import android.graphics.Typeface
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +23,6 @@ import androidx.core.widget.TextViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
 import ca.neunition.data.remote.response.IngredientCard
-import ca.neunition.util.ingredientCardText
 import ca.neunition.util.spannableFactory
 
 class IngredientAdapter(
@@ -69,5 +72,20 @@ class IngredientAdapter(
 
     interface OnItemClickListener {
         fun onDeleteClick(position: Int)
+    }
+
+    private fun ingredientCardText(ingredientText: String, italicText: Boolean): SpannableString {
+        val ingredientTextSpannable = SpannableString(ingredientText)
+
+        if (italicText) {
+            ingredientTextSpannable.setSpan(
+                StyleSpan(Typeface.ITALIC),
+                0,
+                ingredientText.length,
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        return ingredientTextSpannable
     }
 }

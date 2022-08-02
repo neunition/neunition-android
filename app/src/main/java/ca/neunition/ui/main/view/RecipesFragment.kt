@@ -28,13 +28,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
+import ca.neunition.data.model.api.Ingredient
 import ca.neunition.data.remote.response.RecipeCard
 import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.BigDecimalAdapter
 import ca.neunition.ui.main.adapter.RecipeCardAdapter
 import ca.neunition.ui.main.viewmodel.EdamamViewModel
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.*
+import ca.neunition.util.Constants
+import ca.neunition.util.hideKeyboard
+import ca.neunition.util.isOnline
+import ca.neunition.util.toastErrorMessages
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -64,7 +68,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     private lateinit var labelsTextView: AppCompatTextView
     private var labelsList = arrayListOf<Int>()
     private lateinit var checkedLabels: StringBuilder
-    private var selectedLabels = BooleanArray(Constants.LABELS.size)
+    private var selectedLabels = BooleanArray(LABELS.size)
 
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
@@ -159,7 +163,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 builder.apply {
                     setTitle("Select diet/health labels")
                     setCancelable(false)
-                    setMultiChoiceItems(Constants.LABELS, selectedLabels) { _, i, b ->
+                    setMultiChoiceItems(LABELS, selectedLabels) { _, i, b ->
                         // When checkbox is selected
                         if (b) {
                             // Add position to labels list
@@ -179,7 +183,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                         val healthLabelsList = arrayListOf<String>()
 
                         for (j in 0 until labelsList.size) {
-                            var choice = Constants.LABELS[labelsList[j]]
+                            var choice = LABELS[labelsList[j]]
 
                             checkedLabels.append(choice)
                             if (j != labelsList.size - 1) {
@@ -187,7 +191,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                             }
 
                             choice = choice.lowercase()
-                            if (choice in Constants.DIET_PARAMETERS) {
+                            if (choice in DIET_PARAMETERS) {
                                 dietLabelsList.add(choice)
                             } else {
                                 healthLabelsList.add(choice)
@@ -384,6 +388,53 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     }
 
     /**
+     * Calculate the CO2 emissions for the ingredients received.
+     *
+     * @param ingredients the ingredients to calculate the carbon footprint for
+     *
+     * @return the calculated CO2 emissions
+     */
+    private fun recipeCO2Analysis(ingredients: List<Ingredient>?): BigDecimal {
+        var score = BigDecimal("0.00")
+
+        if (ingredients != null) {
+            for (ingredient in ingredients) {
+                var allWords = "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
+                allWords = Regex("[^-./%\\w\\d\\p{L}\\p{M} ]").replace(allWords, "")
+                allWords = Regex("[-]").replace(allWords, " ")
+                val keyWords = allWords.split("\\s".toRegex())
+
+                for (word in keyWords.indices) {
+                    if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
+                        score = score.add(
+                            BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(
+                                BigDecimal(ingredient.weight.toString())
+                            )
+                        )
+                        break
+                    } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
+                        score = score.add(
+                            BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(
+                                BigDecimal(ingredient.weight.toString())
+                            )
+                        )
+                        break
+                    } else if (keyWords[word] in Constants.INGREDIENTS) {
+                        score = score.add(
+                            BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(
+                                BigDecimal(ingredient.weight.toString())
+                            )
+                        )
+                        break
+                    }
+                }
+            }
+        }
+
+        return score
+    }
+
+    /**
      * Let the user know that it could not calculate the CO2 emissions for their input.
      *
      * @param title Title of the dialog to be presented
@@ -405,6 +456,60 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     }
 
     companion object {
+        private val LABELS: Array<String> by lazy {
+            arrayOf(
+                "Alcohol-Cocktail",
+                "Alcohol-Free",
+                "Balanced",
+                "Celery-Free",
+                "Crustacean-Free",
+                "Dairy-Free",
+                "Egg-Free",
+                "Fish-Free",
+                "Gluten-Free",
+                "High-Fiber",
+                "High-Protein",
+                "Immuno-Supportive",
+                "Keto-Friendly",
+                "Kidney-Friendly",
+                "Kosher",
+                "Low-Carb",
+                "Low-Fat",
+                "Low-Potassium",
+                "Low-Sodium",
+                "Low-Sugar",
+                "Lupine-Free",
+                "Mediterranean",
+                "Mollusk-Free",
+                "Mustard-Free",
+                "Paleo",
+                "Peanut-Free",
+                "Pescatarian",
+                "Pork-Free",
+                "Red-Meat-Free",
+                "Sesame-Free",
+                "Shellfish-Free",
+                "Soy-Free",
+                "Sugar-Conscious",
+                "Sulfite-Free",
+                "Tree-Nut-Free",
+                "Vegan",
+                "Vegetarian",
+                "Wheat-Free"
+            )
+        }
+
+        private val DIET_PARAMETERS: HashSet<String> by lazy {
+            hashSetOf(
+                "balanced",
+                "high-fiber",
+                "high-protein",
+                "low-carb",
+                "low-fat",
+                "low-sodium"
+            )
+        }
+
         private val moshi: Moshi by lazy {
             Moshi.Builder()
                 .add(BigDecimalAdapter)

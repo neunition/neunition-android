@@ -90,7 +90,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
 
         loadingDialog = LoadingDialog(requireActivity())
 
-        // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
@@ -117,7 +116,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         clearAllButton = view.findViewById(R.id.clear_all_button)
 
         // Drop down menu options
-        val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, Constants.WEIGHT_OPTIONS)
+        val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, WEIGHT_OPTIONS)
         (weightDropDown.editText as? AutoCompleteTextView)?.setAdapter(weightsAdapter)
 
         ingredientsRecyclerView.apply {
@@ -177,7 +176,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                                                 ingredientWeight += element.text.toDouble().absoluteValue
                                             } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
                                                 ingredientWeight += convertFractionToDecimal(element.text).absoluteValue
-                                            } else if (elementText in Constants.WEIGHTS && ingredientMeasurement == "") {
+                                            } else if (elementText in WEIGHTS_IN_IMAGES && ingredientMeasurement == "") {
                                                 ingredientMeasurement = elementText.trim()
                                             } else if (elementText in Constants.INGREDIENTS) {
                                                 ingredient = elementText.trim()
@@ -466,5 +465,77 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 "1.61"
             ), TextView.BufferType.SPANNABLE
         )
+    }
+
+    companion object {
+        private val WEIGHT_OPTIONS: List<String> by lazy {
+            listOf(
+                "mg",
+                "g",
+                "kg",
+                "tsp",
+                "tbsp",
+                "cups",
+                "lbs",
+                "oz",
+                "fl oz",
+                "mL",
+                "L",
+                "gal",
+                "eggs"
+            )
+        }
+
+        private val WEIGHTS_IN_IMAGES: HashSet<String> by lazy {
+            hashSetOf(
+                "mg",
+                "milligram",
+                "milligrams",
+                "g",
+                "gram",
+                "grams",
+                "kg",
+                "kgs",
+                "kilogram",
+                "kilograms",
+                "kilo",
+                "kilos",
+                "tsp",
+                "tsps",
+                "teaspoon",
+                "teaspoons",
+                "tbsp",
+                "tbsps",
+                "tablespoon",
+                "tablespoons",
+                "cup",
+                "cups",
+                "lb",
+                "lbs",
+                "pound",
+                "pounds",
+                "oz",
+                "ounce",
+                "ounces",
+                //"fl oz",
+                //"fluid ounce",
+                //"fluid ounces",
+                "ml",
+                "milliliter",
+                "milliliters",
+                "millilitre",
+                "millilitres",
+                "l",
+                "liter",
+                "liters",
+                "litre",
+                "litres",
+                "gal",
+                "gallon",
+                "gallons",
+                "egg",
+                "eggs"
+            )
+        }
     }
 }

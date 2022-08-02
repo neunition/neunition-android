@@ -26,7 +26,6 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import ca.neunition.R
-import ca.neunition.data.model.api.Ingredient
 import java.math.BigDecimal
 
 val spannableFactory = object : Spannable.Factory() {
@@ -95,24 +94,6 @@ fun View.hideKeyboard(): Boolean {
     return false
 }
 
-fun ingredientCardText(
-    ingredientText: String,
-    italicText: Boolean
-): SpannableString {
-    val ingredientTextSpannable = SpannableString(ingredientText)
-
-    if (italicText) {
-        ingredientTextSpannable.setSpan(
-            StyleSpan(Typeface.ITALIC),
-            0,
-            ingredientText.length,
-            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-        )
-    }
-
-    return ingredientTextSpannable
-}
-
 /**
  * Change color of the greenhouse gas emissions score based on the value received.
  * Color coding the scores: red, yellow, green. Yearly CO2: 2 tones (30% of that is food)
@@ -156,51 +137,4 @@ fun scoreColourChange(
     }
 
     return scoreSpannable
-}
-
-/**
- * Calculate the CO2 emissions for the ingredients received.
- *
- * @param ingredients the ingredients to calculate the carbon footprint for
- *
- * @return the calculated CO2 emissions
- */
-fun recipeCO2Analysis(ingredients: List<Ingredient>?): BigDecimal {
-    var score = BigDecimal("0.00")
-
-    if (ingredients != null) {
-        for (ingredient in ingredients) {
-            var allWords = "${ingredient.text?.lowercase()} ${ingredient.foodCategory?.lowercase()}"
-            allWords = Regex("[^-./%\\w\\d\\p{L}\\p{M} ]").replace(allWords, "")
-            allWords = Regex("[-]").replace(allWords, " ")
-            val keyWords = allWords.split("\\s".toRegex())
-
-            for (word in keyWords.indices) {
-                if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
-                    score = score.add(
-                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(
-                            BigDecimal(ingredient.weight.toString())
-                        )
-                    )
-                    break
-                } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
-                    score = score.add(
-                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(
-                            BigDecimal(ingredient.weight.toString())
-                        )
-                    )
-                    break
-                } else if (keyWords[word] in Constants.INGREDIENTS) {
-                    score = score.add(
-                        BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(
-                            BigDecimal(ingredient.weight.toString())
-                        )
-                    )
-                    break
-                }
-            }
-        }
-    }
-
-    return score
 }
