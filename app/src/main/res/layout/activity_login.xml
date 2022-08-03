@@ -7,6 +7,21 @@
     android:background="@drawable/background_color"
     tools:context=".ui.main.view.LoginActivity">
 
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/logo_image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:contentDescription="@string/neunition_logo"
+        app:layout_constraintBottom_toTopOf="@+id/facebook_sign_in_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:srcCompat="@drawable/logo"
+        tools:ignore="ImageContrastCheck" />
+
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/google_sign_in_button"
         style="@style/FirebaseUI.Button.AccountChooser.GoogleButton"
@@ -33,21 +48,6 @@
         app:layout_constraintTop_toBottomOf="@+id/logo_image_view"
         app:layout_constraintVertical_chainStyle="packed" />
 
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/logo_image_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="@string/neunition_logo"
-        app:layout_constraintBottom_toTopOf="@+id/facebook_sign_in_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:srcCompat="@drawable/logo"
-        tools:ignore="ImageContrastCheck" />
-
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/agree_check_box"
         android:layout_width="wrap_content"
@@ -57,7 +57,8 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/terms_privacy_agreement" />
+        app:layout_constraintTop_toTopOf="@+id/terms_privacy_agreement"
+        tools:ignore="TouchTargetSizeCheck" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/terms_privacy_agreement"
