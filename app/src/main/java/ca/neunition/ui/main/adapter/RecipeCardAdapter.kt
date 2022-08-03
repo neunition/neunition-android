@@ -115,14 +115,14 @@ class RecipeCardAdapter(
     private fun recipeCardScore(context: Context, score: BigDecimal): SpannableString {
         val scoreSpannable = SpannableString(score.toString())
 
-        if (score <= BigDecimal("1.08")) {
+        if (score <= BigDecimal("1.85")) {
             scoreSpannable.setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(context, R.color.greenScore)),
                 0,
                 score.toString().length,
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
             )
-        } else if (score > BigDecimal("1.08") && score <= BigDecimal("1.61")) {
+        } else if (score > BigDecimal("1.85") && score <= BigDecimal("2.05")) {
             scoreSpannable.setSpan(
                 ForegroundColorSpan(ContextCompat.getColor(context, R.color.yellowScore)),
                 0,

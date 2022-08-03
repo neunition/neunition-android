@@ -116,22 +116,22 @@ fun scoreColourChange(
     if (score <= BigDecimal(greenVal)) {
         scoreSpannable.setSpan(
             ForegroundColorSpan(ContextCompat.getColor(context, R.color.greenScore)),
-            period.length + 1, // start
-            scoreSpannable.length, // end
+            period.length + 1,
+            scoreSpannable.length,
             Spannable.SPAN_EXCLUSIVE_INCLUSIVE
         )
     } else if (score > BigDecimal(greenVal) && score <= BigDecimal(yellowVal)) {
         scoreSpannable.setSpan(
             ForegroundColorSpan(ContextCompat.getColor(context, R.color.yellowScore)),
-            period.length + 1, // start
-            scoreSpannable.length, // end
+            period.length + 1,
+            scoreSpannable.length,
             Spannable.SPAN_EXCLUSIVE_INCLUSIVE
         )
     } else {
         scoreSpannable.setSpan(
             ForegroundColorSpan(ContextCompat.getColor(context, R.color.redScore)),
-            period.length + 1, // start
-            scoreSpannable.length, // end
+            period.length + 1,
+            scoreSpannable.length,
             Spannable.SPAN_EXCLUSIVE_INCLUSIVE
         )
     }

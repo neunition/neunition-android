@@ -73,8 +73,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         requireActivity(),
                         "Today:",
                         dailyScore,
-                        "1.08",
-                        "1.61"
+                        "1.85",
+                        "2.05"
                     ), TextView.BufferType.SPANNABLE
                 )
 
@@ -84,8 +84,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         requireActivity(),
                         "This Week:",
                         weeklyScore,
-                        "7.56",
-                        "11.27"
+                        "12.95",
+                        "14.35"
                     ), TextView.BufferType.SPANNABLE
                 )
 
@@ -95,8 +95,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         requireActivity(),
                         "This Month:",
                         monthlyScore,
-                        "33.48",
-                        "49.91"
+                        "55.50",
+                        "61.50"
                     ), TextView.BufferType.SPANNABLE
                 )
 
@@ -106,8 +106,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         requireActivity(),
                         "This Year:",
                         yearlyScore,
-                        "394.20",
-                        "587.65"
+                        "675",
+                        "750"
                     ), TextView.BufferType.SPANNABLE
                 )
 

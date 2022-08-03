@@ -139,8 +139,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                     requireActivity(),
                     "Current GHG Emissions:",
                     currentEmissionsScore,
-                    "1.08",
-                    "1.61"
+                    "1.85",
+                    "2.05"
                 ),
                 TextView.BufferType.SPANNABLE
             )
@@ -254,8 +254,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 requireActivity(),
                 "Current GHG Emissions:",
                 currentEmissionsScore,
-                "1.08",
-                "1.61"
+                "1.85",
+                "2.05"
             ), TextView.BufferType.SPANNABLE
         )
         ingredientsEmissionsList.removeAt(position)
@@ -347,8 +347,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                             requireActivity(),
                             "Current GHG Emissions:",
                             currentEmissionsScore,
-                            "1.08",
-                            "1.61"
+                            "1.85",
+                            "2.05"
                         ), TextView.BufferType.SPANNABLE
                     )
                     ingrExists = true
@@ -461,8 +461,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 requireActivity(),
                 "Current GHG Emissions:",
                 currentEmissionsScore,
-                "1.08",
-                "1.61"
+                "1.85",
+                "2.05"
             ), TextView.BufferType.SPANNABLE
         )
     }
