@@ -9,6 +9,7 @@
 
 package ca.neunition.ui.main.view
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider
 import ca.neunition.R
 import ca.neunition.ui.main.viewmodel.SplashViewModel
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
     private lateinit var splashViewModel: SplashViewModel
 
