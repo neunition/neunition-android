@@ -40,9 +40,9 @@ class BreakfastAlarmReceiver : BroadcastReceiver() {
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.breakfast_notification))
-            .setContentText(Constants.BREAKFAST_CONTEXT_TEXT)
+            .setContentText(BREAKFAST_CONTEXT_TEXT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(Constants.BREAKFAST_CONTEXT_TEXT))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(BREAKFAST_CONTEXT_TEXT))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -50,5 +50,9 @@ class BreakfastAlarmReceiver : BroadcastReceiver() {
             // notificationId is a unique int for each notification that you must define
             notify(Constants.BREAKFAST_NOTIFICATION_ID, builder.build())
         }
+    }
+
+    companion object {
+        private val BREAKFAST_CONTEXT_TEXT: String by lazy { "There's nothing like starting the day with an environmentally friendly breakfast. Let's record the GHG emissions for what you ate!" }
     }
 }

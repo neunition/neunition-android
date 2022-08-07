@@ -40,9 +40,9 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.dinner_notification))
-            .setContentText(Constants.DINNER_CONTEXT_TEXT)
+            .setContentText(DINNER_CONTEXT_TEXT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(Constants.DINNER_CONTEXT_TEXT))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(DINNER_CONTEXT_TEXT))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -50,5 +50,9 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
             // notificationId is a unique int for each notification that you must define
             notify(Constants.DINNER_NOTIFICATION_ID, builder.build())
         }
+    }
+
+    companion object {
+        private val DINNER_CONTEXT_TEXT: String by lazy { "Is it? Not sure, but hopefully it's filled with ingredients that can save our planet! Just need to record your GHG emissions one more time before the day ends!" }
     }
 }

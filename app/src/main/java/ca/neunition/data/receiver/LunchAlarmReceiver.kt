@@ -40,9 +40,9 @@ class LunchAlarmReceiver : BroadcastReceiver() {
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setColor(ContextCompat.getColor(context, R.color.colorPrimary))
             .setContentTitle(context.getString(R.string.lunch_notification))
-            .setContentText(Constants.LUNCH_CONTEXT_TEXT)
+            .setContentText(LUNCH_CONTEXT_TEXT)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(Constants.LUNCH_CONTEXT_TEXT))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(LUNCH_CONTEXT_TEXT))
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
@@ -50,5 +50,9 @@ class LunchAlarmReceiver : BroadcastReceiver() {
             // notificationId is a unique int for each notification that you must define
             notify(Constants.LUNCH_NOTIFICATION_ID, builder.build())
         }
+    }
+
+    companion object {
+        private val LUNCH_CONTEXT_TEXT: String by lazy { "You've been working very hard. Take a break and recharge with a meal that helps fight climate change! Remember to record your GHG emissions for lunch." }
     }
 }

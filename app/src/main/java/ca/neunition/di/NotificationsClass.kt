@@ -71,21 +71,21 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
 
         val breakfastChannel = NotificationChannel(
             Constants.BREAKFAST_CHANNEL_ID,
-            Constants.BREAKFAST_NOTIFICATION_NAME,
+            BREAKFAST_NOTIFICATION_NAME,
             importance
-        ).apply { description = Constants.BREAKFAST_CHANNEL_DESCRIPTION }
+        ).apply { description = BREAKFAST_CHANNEL_DESCRIPTION }
 
         val lunchChannel = NotificationChannel(
             Constants.LUNCH_CHANNEL_ID,
-            Constants.LUNCH_NOTIFICATION_NAME,
+            LUNCH_NOTIFICATION_NAME,
             importance
-        ).apply { description = Constants.LUNCH_CHANNEL_DESCRIPTION }
+        ).apply { description = LUNCH_CHANNEL_DESCRIPTION }
 
         val dinnerChannel = NotificationChannel(
             Constants.DINNER_CHANNEL_ID,
-            Constants.DINNER_NOTIFICATION_NAME,
+            DINNER_NOTIFICATION_NAME,
             importance
-        ).apply { description = Constants.DINNER_CHANNEL_DESCRIPTION }
+        ).apply { description = DINNER_CHANNEL_DESCRIPTION }
 
         notificationManager.createNotificationChannel(breakfastChannel)
         notificationManager.createNotificationChannel(lunchChannel)
@@ -228,5 +228,15 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         } else {
             dinnerCancelAlarm()
         }
+    }
+
+    companion object {
+        private val BREAKFAST_NOTIFICATION_NAME: String by lazy { "Breakfast Reminder" }
+        private val LUNCH_NOTIFICATION_NAME: String by lazy { "Lunch Reminder" }
+        private val DINNER_NOTIFICATION_NAME: String by lazy { "Dinner Reminder" }
+
+        private val BREAKFAST_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for breakfast." }
+        private val LUNCH_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for lunch." }
+        private val DINNER_CHANNEL_DESCRIPTION: String by lazy { "Reminder to record your GHG emissions for dinner." }
     }
 }

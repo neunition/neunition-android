@@ -13,9 +13,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
+import ca.neunition.BuildConfig
 import ca.neunition.data.model.api.RecipeSearchResults
 import ca.neunition.data.repository.EdamamRepository
-import ca.neunition.util.Constants
 
 class EdamamViewModel : ViewModel() {
     private val _q = MutableLiveData<String>()
@@ -28,8 +28,8 @@ class EdamamViewModel : ViewModel() {
         EdamamRepository.getRecipeSearchResults(
             "public",
             false,
-            Constants.EDAMAM_API_ID,
-            Constants.EDAMAM_API_KEY,
+            EDAMAM_API_ID,
+            EDAMAM_API_KEY,
             it.toString(),
             _random,
             _diet,
@@ -60,5 +60,10 @@ class EdamamViewModel : ViewModel() {
      */
     fun cancelJobs() {
         EdamamRepository.cancelJobs()
+    }
+
+    companion object {
+        private val EDAMAM_API_ID: String by lazy { BuildConfig.EDAMAM_API_ID }
+        private val EDAMAM_API_KEY: String by lazy { BuildConfig.EDAMAM_API_KEY }
     }
 }
