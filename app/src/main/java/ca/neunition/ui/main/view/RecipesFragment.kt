@@ -126,18 +126,15 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
             when {
                 it.hits == null -> {
                     loadingDialog.dismissDialog()
-                    noCalculations("Error", "Oops, something went wrong. Please try again later.")
+                    noResults("Error", "Oops, something went wrong. Please try again later.")
                 }
                 it.hits.isEmpty() -> {
                     loadingDialog.dismissDialog()
-                    noCalculations("", "Sorry, we couldn't find any recipes for your search.")
+                    noResults("", "Sorry, we couldn't find any recipes for your search.")
                 }
                 else -> {
                     for (i in it.hits.indices) {
-                        val score = recipeCO2Analysis(it.hits[i].recipe?.ingredients).setScale(
-                            2,
-                            RoundingMode.HALF_UP
-                        )
+                        val score = calculateRecipeEmissions(it.hits[i].recipe?.ingredients)
 
                         val item = RecipeCard(
                             it.hits[i].recipe?.image,
@@ -369,6 +366,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         recipesRecyclerView.apply {
             adapter = RecipeCardAdapter(recipesList, this@RecipesFragment)
             layoutManager = GridLayoutManager(requireActivity(), 2)
+            setHasFixedSize(true)
             layoutAnimation = animationController
             adapter?.notifyDataSetChanged()
             scheduleLayoutAnimation()
@@ -388,13 +386,13 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     }
 
     /**
-     * Calculate the CO2 emissions for the ingredients received.
+     * Calculate the GHG emissions for the ingredients received.
      *
      * @param ingredients the ingredients to calculate the carbon footprint for
      *
      * @return the calculated CO2 emissions
      */
-    private fun recipeCO2Analysis(ingredients: List<Ingredient>?): BigDecimal {
+    private fun calculateRecipeEmissions(ingredients: List<Ingredient>?): BigDecimal {
         var score = BigDecimal("0.00")
 
         if (ingredients != null) {
@@ -431,16 +429,16 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
             }
         }
 
-        return score
+        return score.setScale(2, RoundingMode.HALF_UP)
     }
 
     /**
-     * Let the user know that it could not calculate the CO2 emissions for their input.
+     * Let the user know that it could not find any recipes for their search.
      *
      * @param title Title of the dialog to be presented
      * @param message Message to show the user
      */
-    private fun noCalculations(title: String, message: String) {
+    private fun noResults(title: String, message: String) {
         val noCalcsBuilder = MaterialAlertDialogBuilder(this.requireActivity())
         noCalcsBuilder.apply {
             setTitle(title)
