@@ -123,8 +123,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
 
         if (userSignInProvider == "facebook.com") {
+            userProviderPreference.setIcon(R.drawable.ic_baseline_facebook)
             userProviderPreference.title = "Connected with Facebook"
         } else if (userSignInProvider == "google.com") {
+            userProviderPreference.setIcon(R.drawable.ic_baseline_google)
             userProviderPreference.title = "Connected with Google"
         }
 
