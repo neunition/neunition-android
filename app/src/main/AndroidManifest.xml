@@ -70,6 +70,9 @@
         <receiver android:name=".data.receiver.DinnerAlarmReceiver" />
 
         <meta-data
+            android:name="preloaded_fonts"
+            android:resource="@array/preloaded_fonts" />
+        <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id"
             tools:replace="android:value" />
@@ -77,14 +80,11 @@
             android:name="com.facebook.sdk.ClientToken"
             android:value="@string/facebook_client_token" />
         <meta-data
-            android:name="android.webkit.WebView.MetricsOptOut"
-            android:value="true" />
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
-        <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr" />
+        <meta-data
+            android:name="android.webkit.WebView.MetricsOptOut"
+            android:value="true" />
         <meta-data
             android:name="android.webkit.WebView.EnableSafeBrowsing"
             android:value="true" />
