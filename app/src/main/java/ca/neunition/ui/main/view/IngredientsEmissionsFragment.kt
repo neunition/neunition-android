@@ -13,6 +13,7 @@ package ca.neunition.ui.main.view
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -41,23 +42,27 @@ import ca.neunition.util.*
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.absoluteValue
 
-class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickListener {
+class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListener {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
+
+    private lateinit var loadingDialog: LoadingDialog
 
     private var dailyScore = BigDecimal("0.00")
     private var weeklyScore = BigDecimal("0.00")
     private var monthlyScore = BigDecimal("0.00")
     private var yearlyScore = BigDecimal("0.00")
-
-    private lateinit var loadingDialog: LoadingDialog
 
     private lateinit var ingredientTextView: AppCompatEditText
     private lateinit var weightTextView: AppCompatEditText
@@ -69,7 +74,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
     private var currentEmissionsScore = BigDecimal("0.00")
     private var ingredientsEmissionsList = ArrayList<IngredientCard>()
     private lateinit var ingredientsRecyclerView: RecyclerView
-    private lateinit var animationController: LayoutAnimationController
 
     private var manualSubmission = true
 
@@ -109,27 +113,28 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         currentEmissionsTextView = view.findViewById(R.id.current_score_text_view)
         ingredientsRecyclerView = view.findViewById(R.id.ingredients_recycler_view)
 
-        animationController = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.ingredients_recycler_view_animation)
-
         uploadIngredientsPhoto = view.findViewById(R.id.upload_ingredients_photo)
         addEmissionsButton = view.findViewById(R.id.add_emissions_button)
         clearAllButton = view.findViewById(R.id.clear_all_button)
 
-        // Drop down menu options
         val weightsAdapter = ArrayAdapter(requireActivity(), R.layout.list_weights, WEIGHT_OPTIONS)
         (weightDropDown.editText as? AutoCompleteTextView)?.setAdapter(weightsAdapter)
+        autoCompleteWeights.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                v.hideKeyboard()
+            }
+        }
+
+        addIngredientButton.setOnClickListener {
+            this.requireView().hideKeyboard()
+            verifyIngredientSubmission()
+        }
 
         ingredientsRecyclerView.apply {
             adapter = IngredientAdapter(ingredientsEmissionsList, this@IngredientsEmissionsFragment)
             layoutManager = LinearLayoutManager(requireActivity())
             setHasFixedSize(true)
-            layoutAnimation = animationController
-        }
-
-        // Add the ingredient to the RecyclerView
-        addIngredientButton.setOnClickListener {
-            this.requireView().hideKeyboard()
-            verifyAndCalculateIngredientCO2()
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.ingredients_recycler_view_animation)
         }
 
         currentEmissionsTextView.apply {
@@ -151,70 +156,24 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 if (res.resultCode == Activity.RESULT_OK && res.data != null) {
                     loadingDialog.startDialog()
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        val recognizer =
-                            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-                        // Proceed and check what the selected image was
-                        val ingrImageUri = res.data!!.data!!
-                        val image = InputImage.fromFilePath(
-                            requireActivity(),
-                            ingrImageUri
-                        )
-                        recognizer.process(image)
-                            .addOnSuccessListener { visionText ->
-                                manualSubmission = false
-                                for (block in visionText.textBlocks) {
-                                    for (line in block.lines) {
-                                        var ingredient = ""
-                                        var ingredientWeight = 0.0
-                                        var ingredientMeasurement = ""
-                                        for (element in line.elements) {
-                                            val elementText = element.text
-                                                .replace("[^A-Za-z0-9 ]".toRegex(), "")
-                                                .lowercase()
-
-                                            if (element.text.matches("-?\\d+(\\.\\d+)?".toRegex())) {
-                                                ingredientWeight += element.text.toDouble().absoluteValue
-                                            } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
-                                                ingredientWeight += convertFractionToDecimal(element.text).absoluteValue
-                                            } else if (elementText in WEIGHTS_IN_IMAGES && ingredientMeasurement == "") {
-                                                ingredientMeasurement = elementText.trim()
-                                            } else if (elementText in Constants.INGREDIENTS) {
-                                                ingredient = elementText.trim()
-                                            }
-                                        }
-
-                                        if ((ingredientMeasurement == "egg" || ingredientMeasurement == "eggs") && ingredientWeight != 0.0) {
-                                            entireIngredientCO2Calculation(
-                                                ingredientMeasurement,
-                                                ingredientWeight.toString(),
-                                                ingredientMeasurement
-                                            )
-                                        } else if (ingredient != "" && ingredientWeight != 0.0 && ingredientMeasurement != "") {
-                                            entireIngredientCO2Calculation(
-                                                line.text.trim(),
-                                                ingredientWeight.toString(),
-                                                ingredientMeasurement
-                                            )
-                                        } else {
-                                            entireIngredientCO2Calculation(
-                                                line.text.trim(),
-                                                "0.0",
-                                                ""
-                                            )
-                                        }
-                                    }
-                                }
-
+                        try {
+                            val image = InputImage.fromFilePath(requireActivity(), res.data!!.data!!)
+                            val visionText = recognizer.process(image).await()
+                            manualSubmission = false
+                            withContext(Dispatchers.Main) {
+                                processTextFromImage(visionText)
                                 loadingDialog.dismissDialog()
                             }
-                            .addOnFailureListener { e ->
+                        } catch (error: Exception) {
+                            withContext(Dispatchers.Main) {
                                 Toast.makeText(
                                     requireActivity(),
-                                    "Failed to process the image: ${e.message}",
+                                    "Failed to process the image: ${error.message}",
                                     Toast.LENGTH_LONG
                                 ).show()
                                 loadingDialog.dismissDialog()
                             }
+                        }
                     }
                 }
             }
@@ -232,12 +191,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         clearAllButton.setOnClickListener {
             clearRecyclerView()
         }
-
-        autoCompleteWeights.setOnFocusChangeListener { v, hasFocus ->
-            if (hasFocus) {
-                v.hideKeyboard()
-            }
-        }
     }
 
     /**
@@ -246,8 +199,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
      * @param position the specific ingredient to be removed
      */
     override fun onDeleteClick(position: Int) {
-        currentEmissionsScore =
-            currentEmissionsScore.subtract(ingredientsEmissionsList[position].weight)
+        currentEmissionsScore = currentEmissionsScore.subtract(ingredientsEmissionsList[position].weight)
         currentEmissionsScore = currentEmissionsScore.setScale(2, RoundingMode.HALF_UP)
         currentEmissionsTextView.setText(
             scoreColourChange(
@@ -256,21 +208,22 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 currentEmissionsScore,
                 "1.85",
                 "2.05"
-            ), TextView.BufferType.SPANNABLE
+            ),
+            TextView.BufferType.SPANNABLE
         )
         ingredientsEmissionsList.removeAt(position)
         ingredientsRecyclerView.adapter?.notifyItemRemoved(position)
     }
 
     /**
-     * Calculate the CO2 emissions for the ingredient the user entered.
+     * Verify the user has filled all required fields and if they have, calculate the emissions.
      */
-    private fun verifyAndCalculateIngredientCO2() {
-        val ingr = ingredientTextView.text.toString().lowercase().trim()
-        val ingrWeight = weightTextView.text.toString()
+    private fun verifyIngredientSubmission() {
+        val ingredient = ingredientTextView.text.toString().lowercase().trim()
+        val ingredientWeight = weightTextView.text.toString()
         val selectedWeight = weightDropDown.editText?.text.toString()
 
-        if (ingr.isEmpty() || ingrWeight.isEmpty() || selectedWeight.isEmpty()) {
+        if (ingredient.isEmpty() || ingredientWeight.isEmpty() || selectedWeight.isEmpty()) {
             Toast.makeText(
                 requireActivity(),
                 "Please fill in all required fields.",
@@ -281,11 +234,59 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
             manualSubmission = true
         }
 
-        entireIngredientCO2Calculation(ingr, ingrWeight, selectedWeight)
+        calculateEmissionsForIngredient(ingredient, ingredientWeight, selectedWeight)
 
         ingredientTextView.setText("")
         weightTextView.setText("")
         autoCompleteWeights.text = null
+    }
+
+    private fun processTextFromImage(visionText: Text) {
+        for (block in visionText.textBlocks) {
+            for (line in block.lines) {
+                var ingredientWeight = 0.0
+                var ingredientMeasurement = ""
+
+                for (element in line.elements) {
+                    val elementText = element.text
+                        .replace("[^A-Za-z0-9 ]".toRegex(), "")
+                        .lowercase()
+
+                    if (element.text.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+                        ingredientWeight += element.text.toDouble().absoluteValue
+                    } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
+                        ingredientWeight += convertFractionToDecimal(element.text).absoluteValue
+                    } else if (elementText in WEIGHTS_IN_IMAGES) {
+                        if (ingredientMeasurement != "") {
+                            ingredientMeasurement = ""
+                            break
+                        } else {
+                            ingredientMeasurement = elementText.trim()
+                        }
+                    }
+                }
+
+                if ((ingredientMeasurement == "egg" || ingredientMeasurement == "eggs") && ingredientWeight != 0.0) {
+                    calculateEmissionsForIngredient(
+                        ingredientMeasurement,
+                        ingredientWeight.toString(),
+                        ingredientMeasurement
+                    )
+                } else if (ingredientWeight != 0.0 && ingredientMeasurement != "") {
+                    calculateEmissionsForIngredient(
+                        line.text.trim(),
+                        ingredientWeight.toString(),
+                        ingredientMeasurement
+                    )
+                } else {
+                    calculateEmissionsForIngredient(
+                        line.text.trim(),
+                        "0.00",
+                        ""
+                    )
+                }
+            }
+        }
     }
 
     private fun convertFractionToDecimal(ratio: String): Double {
@@ -297,81 +298,105 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         }
     }
 
-    private fun entireIngredientCO2Calculation(
-        ingr: String,
-        ingrWeight: String,
-        selectedWeight: String
-    ) {
-        val re = Regex("[^a-zA-Z ]")
-        val mainFood = re.replace(ingr, "")
-        val mainFoods = mainFood.split("\\s+".toRegex())
-        val allFoodWords: MutableList<String> = mainFoods.toMutableList()
+    private fun calculateEmissionsForIngredient(ingredient: String, ingredientWeight: String, selectedWeight: String) {
+        var score = BigDecimal("0.00")
+        var ingredientExists = false
 
-        // Make sure the weight of the ingredient is in grams
-        val weightOfIngr = gramsConverter(BigDecimal(ingrWeight), selectedWeight)
-
-        var ingrExists = false
-        // Calculate carbon food footprint for the ingredient
+        Log.d("sdsdfsdfas", "Line: $ingredient")
 
         if (selectedWeight != "") {
-            for (foodWord in allFoodWords) {
-                if (foodWord in Constants.INGREDIENTS) {
-                    var correctCalc = BigDecimal(Constants.INGREDIENTS[foodWord]!!).multiply(weightOfIngr)
-                    correctCalc = correctCalc.setScale(5, RoundingMode.HALF_UP)
-                    // Add the ingredient to the RecyclerView
-                    if (ingr == "egg" || ingr == "eggs") {
-                        addIngredientGHGCard(
-                            "$ingrWeight $ingr = $correctCalc kg of CO₂-eq",
-                            correctCalc,
-                            false
-                        )
-                    } else {
-                        if (manualSubmission) {
-                            addIngredientGHGCard(
-                                "$ingrWeight $selectedWeight of $ingr = $correctCalc kg of CO₂-eq",
-                                correctCalc,
-                                false
-                            )
-                        } else {
-                            addIngredientGHGCard(
-                                "$ingr = $correctCalc kg of CO₂-eq",
-                                correctCalc,
-                                false
-                            )
-                        }
-                    }
-                    currentEmissionsScore = currentEmissionsScore.add(correctCalc
-                        .setScale(2, RoundingMode.HALF_UP))
-                    currentEmissionsTextView.setText(
-                        scoreColourChange(
-                            requireActivity(),
-                            "Current GHG Emissions:",
-                            currentEmissionsScore,
-                            "1.85",
-                            "2.05"
-                        ), TextView.BufferType.SPANNABLE
+            var allWords = Regex("[^-./%\\w\\d\\p{L}\\p{M} ]").replace(ingredient.lowercase(), "")
+            allWords = Regex("[-]").replace(allWords, " ")
+            val keyWords = allWords.split("\\s".toRegex())
+
+            val ingredientInGrams = gramsConverter(BigDecimal(ingredientWeight), selectedWeight)
+            Log.d("sdsdfsdfas", "Weight: $ingredientWeight $selectedWeight")
+            Log.d("sdsdfsdfas", "In grams: $ingredientInGrams")
+
+            for (word in keyWords.indices) {
+                if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
+                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]} ${keyWords[word + 1]}")
+                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()} x $ingredientInGrams")
+                    score = score.add(
+                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(ingredientInGrams)
                     )
-                    ingrExists = true
+                    ingredientExists = true
+                    Log.d("sdsdfsdfas", "Score: $score")
+                    break
+                } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
+                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}")
+                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()} x $ingredientInGrams")
+                    score = score.add(
+                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(ingredientInGrams)
+                    )
+                    ingredientExists = true
+                    Log.d("sdsdfsdfas", "Score: $score")
+                    break
+                } else if (keyWords[word] in Constants.INGREDIENTS) {
+                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]}")
+                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS[keyWords[word]].toString()} x $ingredientInGrams")
+                    score = score.add(
+                        BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(ingredientInGrams)
+                    )
+                    ingredientExists = true
+                    Log.d("sdsdfsdfas", "Score: $score")
                     break
                 }
             }
         }
 
-        // CO2 emissions data for the ingredient doesn't exist
-        // val properIngr = allFoodWords.joinToString(separator = " ")
-        if (!ingrExists && !manualSubmission) {
-            addIngredientGHGCard(
-                "$ingr = 0.00 kg of CO₂-eq",
-                BigDecimal("0.0"),
-                true
-            )
-        } else if (!ingrExists && manualSubmission) {
-            addIngredientGHGCard(
-                "$ingrWeight $selectedWeight of $ingr = 0.00 kg of CO₂-eq",
-                BigDecimal("0.0"),
-                false
-            )
+        if (ingredientExists) {
+            score = score.setScale(5, RoundingMode.HALF_UP)
+            if (selectedWeight == "egg" || selectedWeight == "eggs") {
+                addIngredientGHGCard(
+                    "$ingredientWeight $selectedWeight = $score kg of CO₂-eq",
+                    score,
+                    false
+                )
+            } else {
+                if (manualSubmission) {
+                    addIngredientGHGCard(
+                        "$ingredientWeight $selectedWeight of $ingredient = $score kg of CO₂-eq",
+                        score,
+                        false
+                    )
+                } else {
+                    addIngredientGHGCard(
+                        "$ingredient = $score kg of CO₂-eq",
+                        score,
+                        false
+                    )
+                }
+            }
+        } else {
+            if (manualSubmission) {
+                addIngredientGHGCard(
+                    "$ingredientWeight $selectedWeight of $ingredient = 0.00 kg of CO₂-eq",
+                    BigDecimal("0.00"),
+                    false
+                )
+            } else {
+                addIngredientGHGCard(
+                    "$ingredient = 0.00 kg of CO₂-eq",
+                    BigDecimal("0.00"),
+                    true
+                )
+            }
         }
+
+        currentEmissionsScore = currentEmissionsScore.add(score.setScale(2, RoundingMode.HALF_UP))
+        currentEmissionsTextView.setText(
+            scoreColourChange(
+                requireActivity(),
+                "Current GHG Emissions:",
+                currentEmissionsScore,
+                "1.85",
+                "2.05"
+            ),
+            TextView.BufferType.SPANNABLE
+        )
+
+        Log.d("sdsdfsdfas", "---------------------------------------------------------------------------------------------------------------")
     }
 
     /**
@@ -398,6 +423,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
             "l", "liter", "liters", "litre", "litres" -> newWeight = weight.multiply(BigDecimal("1000"))
             "gal", "gallon", "gallons" -> newWeight = weight.multiply(BigDecimal("3785.411784"))
             "egg", "eggs" -> newWeight = weight
+            "clove", "cloves" -> newWeight = weight.multiply(BigDecimal("4"))
         }
         return newWeight
     }
@@ -407,7 +433,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
         ingredientsEmissionsList.add(item)
         ingredientsRecyclerView.apply {
             adapter?.notifyItemInserted(ingredientsEmissionsList.size - 1)
-            scheduleLayoutAnimation()
+            if (!manualSubmission) scheduleLayoutAnimation()
         }
     }
 
@@ -415,7 +441,13 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
      * Add the user's ingredients' emissions to their daily, weekly, and monthly scores.
      */
     private fun updateUserEmissions() {
-        if (currentEmissionsScore.compareTo(BigDecimal("0.00")) != 0 && isOnline(requireActivity().applicationContext)) {
+        if (!isOnline(requireActivity().applicationContext)) {
+            Toast.makeText(
+                requireActivity(),
+                "No internet connection found. Please check your connection.",
+                Toast.LENGTH_LONG
+            ).show()
+        } else if (currentEmissionsScore.compareTo(BigDecimal("0.00")) != 0) {
             dailyScore = dailyScore.add(currentEmissionsScore)
             weeklyScore = weeklyScore.add(currentEmissionsScore)
             monthlyScore = monthlyScore.add(currentEmissionsScore)
@@ -430,17 +462,11 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 "Thank you for your submission! Your GHG emissions have successfully been updated.",
                 Toast.LENGTH_LONG
             ).show()
-        } else if (ingredientsEmissionsList.isNotEmpty() && isOnline(requireActivity().applicationContext)) {
+        } else if (ingredientsEmissionsList.isNotEmpty()) {
             clearRecyclerView()
             Toast.makeText(
                 requireActivity(),
                 "Thank you for your submission! Your GHG emissions have successfully been updated.",
-                Toast.LENGTH_LONG
-            ).show()
-        } else if (!isOnline(requireActivity().applicationContext)) {
-            Toast.makeText(
-                requireActivity(),
-                "No internet connection found. Please check your connection.",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -463,7 +489,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 currentEmissionsScore,
                 "1.85",
                 "2.05"
-            ), TextView.BufferType.SPANNABLE
+            ),
+            TextView.BufferType.SPANNABLE
         )
     }
 
@@ -534,8 +561,12 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnItemClickLi
                 "gallon",
                 "gallons",
                 "egg",
-                "eggs"
+                "eggs",
+                "clove",
+                "cloves"
             )
         }
+
+        private val recognizer: TextRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
     }
 }

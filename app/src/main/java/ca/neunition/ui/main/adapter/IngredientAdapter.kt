@@ -27,12 +27,12 @@ import ca.neunition.util.spannableFactory
 
 class IngredientAdapter(
     private val ingredientsList: List<IngredientCard>,
-    private val listener: OnItemClickListener
+    private val onClickListener: OnClickListener
 ) : RecyclerView.Adapter<IngredientAdapter.IngredientViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IngredientViewHolder {
-        val itemView =
+        return IngredientViewHolder(
             LayoutInflater.from(parent.context).inflate(R.layout.ingredient_card, parent, false)
-        return IngredientViewHolder(itemView)
+        )
     }
 
     override fun onBindViewHolder(holder: IngredientViewHolder, position: Int) {
@@ -45,9 +45,8 @@ class IngredientAdapter(
 
     override fun getItemCount() = ingredientsList.size
 
-    inner class IngredientViewHolder(
-        itemView: View
-    ) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+    inner class IngredientViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnClickListener {
         val ingredientCalcTextView: AppCompatTextView =
             itemView.findViewById(R.id.calculation_of_ingredient_text_view)
         private val deleteIngredientImageView: AppCompatImageView =
@@ -62,15 +61,15 @@ class IngredientAdapter(
             deleteIngredientImageView.setOnClickListener(this)
         }
 
-        override fun onClick(v: View?) {
-            val position = bindingAdapterPosition
-            if (position != RecyclerView.NO_POSITION) {
-                listener.onDeleteClick(position)
+        override fun onClick(view: View) {
+            val position = absoluteAdapterPosition
+            if (view == deleteIngredientImageView && position != RecyclerView.NO_POSITION) {
+                onClickListener.onDeleteClick(position)
             }
         }
     }
 
-    interface OnItemClickListener {
+    interface OnClickListener {
         fun onDeleteClick(position: Int)
     }
 
