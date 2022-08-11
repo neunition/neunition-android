@@ -75,10 +75,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     private var monthlyScore = BigDecimal("0.00")
     private var yearlyScore = BigDecimal("0.00")
 
-    private var currentJSONObject = ""
+    private var currentJsonObject = ""
     private lateinit var recipesRecyclerView: RecyclerView
     private var recipesList = ArrayList<RecipeCard>()
-    private lateinit var animationController: LayoutAnimationController
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -99,7 +98,12 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         labelsTextView = view.findViewById(R.id.select_label_text_view)
         recipesRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
 
-        animationController = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.recipes_recycler_view_animation)
+        recipesRecyclerView.apply {
+            layoutManager = GridLayoutManager(requireActivity(), 2)
+            setHasFixedSize(false)
+            isNestedScrollingEnabled = false
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.recipes_recycler_view_animation)
+        }
 
         firebaseDatabaseViewModel = ViewModelProvider(requireActivity())[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
@@ -108,13 +112,13 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 weeklyScore = BigDecimal(user.weekly.toString())
                 monthlyScore = BigDecimal(user.monthly.toString())
                 yearlyScore = BigDecimal(user.yearly.toString())
-                if (currentJSONObject != user.recipesJsonData) {
+                if (currentJsonObject != user.recipesJsonData) {
                     if (user.recipesJsonData != "") {
                         recipesList = jsonAdapter.fromJson(user.recipesJsonData)!!
                         verifyJsonData()
                     }
                     initRecyclerView()
-                    currentJSONObject = user.recipesJsonData
+                    currentJsonObject = user.recipesJsonData
                 } else if (user.recipesJsonData == "") {
                     initRecyclerView()
                 }
@@ -160,9 +164,8 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 builder.apply {
                     setTitle("Select diet/health labels")
                     setCancelable(false)
-                    setMultiChoiceItems(LABELS, selectedLabels) { _, i, b ->
-                        // When checkbox is selected
-                        if (b) {
+                    setMultiChoiceItems(LABELS, selectedLabels) { _, i, selectedCheckbox ->
+                        if (selectedCheckbox) {
                             // Add position to labels list
                             labelsList.apply {
                                 add(i)
@@ -365,9 +368,6 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     private fun initRecyclerView() {
         recipesRecyclerView.apply {
             adapter = RecipeCardAdapter(recipesList, this@RecipesFragment)
-            layoutManager = GridLayoutManager(requireActivity(), 2)
-            setHasFixedSize(true)
-            layoutAnimation = animationController
             adapter?.notifyDataSetChanged()
             scheduleLayoutAnimation()
         }
