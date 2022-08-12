@@ -24,7 +24,6 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
 import ca.neunition.data.model.api.Ingredient
@@ -98,9 +97,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         recipesRecyclerView = view.findViewById(R.id.edamam_recipes_recycler_view)
 
         recipesRecyclerView.apply {
-            layoutManager = GridLayoutManager(requireActivity(), 2)
             setHasFixedSize(false)
-            isNestedScrollingEnabled = false
             layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.recipes_recycler_view_animation)
         }
 
@@ -336,20 +333,18 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
      */
     private fun verifyJsonData() {
         try {
-            if (recipesList.size > 0) {
-                val url = URL(recipesList[0].recipeImage.toString())
-                val connection = url.openConnection() as HttpURLConnection
-                connection.apply {
-                    readTimeout = 5000
-                    connectTimeout = 5000
-                    requestMethod = "GET"
-                }
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                    val responseCode = connection.responseCode
-                    if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
-                        firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
-                        recipesList = ArrayList()
-                    }
+            val url = URL(recipesList[0].recipeImage.toString())
+            val connection = url.openConnection() as HttpURLConnection
+            connection.apply {
+                readTimeout = 5000
+                connectTimeout = 5000
+                requestMethod = "GET"
+            }
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {
+                    firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
+                    recipesList = ArrayList()
                 }
             }
         } catch (error: Exception) {

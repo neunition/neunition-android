@@ -27,6 +27,7 @@ import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.widget.CompoundButtonCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import ca.neunition.R
 import ca.neunition.ui.main.viewmodel.FirebaseAuthViewModel
 import ca.neunition.util.changeStatusBarColor
@@ -41,7 +42,6 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -167,7 +167,7 @@ class LoginActivity : AppCompatActivity() {
                 ).show()
                 return@setOnClickListener
             } else {
-                CoroutineScope(Dispatchers.IO).launch {
+                lifecycleScope.launch(Dispatchers.IO) {
                     try {
                         oneTapClient.beginSignIn(signInRequest).await().let { result ->
                             googleSignInLauncher.launch(

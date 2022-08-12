@@ -51,7 +51,6 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -251,7 +250,7 @@ class MainActivity : AppCompatActivity() {
      *
      * @param profileImageUri the image to upload
      */
-    private fun uploadProfileImage(profileImageUri: Uri) = CoroutineScope(Dispatchers.IO).launch {
+    private fun uploadProfileImage(profileImageUri: Uri) = lifecycleScope.launch(Dispatchers.IO) {
         try {
             val filename: String = Constants.FIREBASE_AUTH.currentUser!!.uid
             val ref: StorageReference = FIREBASE_STORAGE.getReference("/profile_pictures/$filename")
