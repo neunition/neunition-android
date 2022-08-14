@@ -10,7 +10,6 @@
 package ca.neunition.ui.main.view
 
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.text.*
@@ -23,9 +22,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatButton
-import androidx.appcompat.widget.AppCompatCheckBox
 import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.widget.CompoundButtonCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import ca.neunition.R
@@ -50,7 +47,6 @@ import kotlinx.coroutines.withContext
 class LoginActivity : AppCompatActivity() {
     private lateinit var facebookSignInButton: AppCompatButton
     private lateinit var googleSignInButton: AppCompatButton
-    private lateinit var agreeCheckBox: AppCompatCheckBox
     private lateinit var termsPrivacyAgreement: AppCompatTextView
 
     private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
@@ -63,9 +59,6 @@ class LoginActivity : AppCompatActivity() {
 
         facebookSignInButton = findViewById(R.id.facebook_sign_in_button)
         googleSignInButton = findViewById(R.id.google_sign_in_button)
-
-        agreeCheckBox = findViewById(R.id.agree_check_box)
-        CompoundButtonCompat.setButtonTintList(agreeCheckBox, ColorStateList.valueOf(Color.WHITE))
 
         termsPrivacyAgreement = findViewById(R.id.terms_privacy_agreement)
         termsPrivacyAgreement.makeLinks(
@@ -83,38 +76,29 @@ class LoginActivity : AppCompatActivity() {
         val callbackManager = CallbackManager.Factory.create()
 
         facebookSignInButton.setOnClickListener {
-            if (!agreeCheckBox.isChecked) {
-                Toast.makeText(
-                    this,
-                    "You must accept the Terms & Conditions and Privacy Policy to continue using our app.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@setOnClickListener
-            } else {
-                LoginManager.getInstance().logInWithReadPermissions(this, callbackManager, arrayOf("email", "public_profile").toList())
-                LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-                    override fun onSuccess(result: LoginResult) {
-                        val credential = FacebookAuthProvider.getCredential(result.accessToken.token)
-                        signInWithFirebaseAuthCredential(credential, "Facebook")
-                    }
+            LoginManager.getInstance().logInWithReadPermissions(this, callbackManager, arrayOf("email", "public_profile").toList())
+            LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                override fun onSuccess(result: LoginResult) {
+                    val credential = FacebookAuthProvider.getCredential(result.accessToken.token)
+                    signInWithFirebaseAuthCredential(credential, "Facebook")
+                }
 
-                    override fun onCancel() {
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Facebook Login Cancelled",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                override fun onCancel() {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "Facebook Login Cancelled",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
 
-                    override fun onError(error: FacebookException) {
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "${error.message}",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                })
-            }
+                override fun onError(error: FacebookException) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "${error.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
         }
         /****************************** Facebook Login ********************************************/
 
@@ -159,35 +143,31 @@ class LoginActivity : AppCompatActivity() {
         }
 
         googleSignInButton.setOnClickListener {
-            if (!agreeCheckBox.isChecked) {
-                Toast.makeText(
-                    this,
-                    "You must accept the Terms & Conditions and Privacy Policy to continue using our app.",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@setOnClickListener
-            } else {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    try {
-                        oneTapClient.beginSignIn(signInRequest).await().let { result ->
-                            googleSignInLauncher.launch(
-                                IntentSenderRequest.Builder(result.pendingIntent.intentSender)
-                                    .build()
-                            )
-                        }
-                    } catch (error: Exception) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                this@LoginActivity,
-                                error.message,
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    oneTapClient.beginSignIn(signInRequest).await().let { result ->
+                        googleSignInLauncher.launch(
+                            IntentSenderRequest.Builder(result.pendingIntent.intentSender)
+                                .build()
+                        )
+                    }
+                } catch (error: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            error.message,
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }
         }
         /******************************* Google Login *********************************************/
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        firebaseAuthViewModel.cancelCoroutines()
     }
 
     /**
