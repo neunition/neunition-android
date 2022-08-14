@@ -40,4 +40,9 @@ class SplashActivity : AppCompatActivity() {
             }
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        splashViewModel.cancelCoroutines()
+    }
 }

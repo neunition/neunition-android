@@ -44,6 +44,7 @@ import com.squareup.moshi.Types
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.reflect.Type
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -133,23 +134,27 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                     noResults("", "Sorry, we couldn't find any recipes for your search.")
                 }
                 else -> {
-                    for (i in it.hits.indices) {
-                        val score = calculateRecipeEmissions(it.hits[i].recipe?.ingredients)
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+                        for (i in it.hits.indices) {
+                            val score = calculateRecipeEmissions(it.hits[i].recipe?.ingredients)
 
-                        val item = RecipeCard(
-                            it.hits[i].recipe?.image,
-                            it.hits[i].recipe?.label,
-                            score,
-                            it.hits[i].recipe?.url
-                        )
+                            val item = RecipeCard(
+                                it.hits[i].recipe?.image,
+                                it.hits[i].recipe?.label,
+                                score,
+                                it.hits[i].recipe?.url
+                            )
 
-                        recipesList += item
+                            recipesList += item
+                        }
+
+                        recipesList = recipesList.sortedBy { recipe -> recipe.recipeScore }.toCollection(ArrayList())
+                        firebaseDatabaseViewModel.updateChildValue("recipesJsonData", jsonAdapter.toJson(recipesList))
+
+                        withContext(Dispatchers.Main) {
+                            loadingDialog.dismissDialog()
+                        }
                     }
-
-                    recipesList = recipesList.sortedBy { recipe -> recipe.recipeScore }.toCollection(ArrayList())
-                    firebaseDatabaseViewModel.updateChildValue("recipesJsonData", jsonAdapter.toJson(recipesList))
-
-                    loadingDialog.dismissDialog()
                 }
             }
         }

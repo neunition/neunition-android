@@ -30,7 +30,6 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
 import ca.neunition.data.remote.response.IngredientCard
@@ -131,7 +130,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
 
         ingredientsRecyclerView.apply {
             adapter = IngredientAdapter(ingredientsEmissionsList, this@IngredientsEmissionsFragment)
-            layoutManager = LinearLayoutManager(requireActivity())
             setHasFixedSize(true)
             layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.ingredients_recycler_view_animation)
         }
@@ -154,23 +152,25 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
                 if (res.resultCode == Activity.RESULT_OK && res.data != null) {
                     loadingDialog.startDialog()
+                    val image = InputImage.fromFilePath(requireActivity(), res.data!!.data!!)
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         try {
-                            val image = InputImage.fromFilePath(requireActivity(), res.data!!.data!!)
                             val visionText = recognizer.process(image).await()
                             manualSubmission = false
-                            withContext(Dispatchers.Main) {
+                            withContext(Dispatchers.Default) {
                                 processTextFromImage(visionText)
+                            }
+                            withContext(Dispatchers.Main) {
                                 loadingDialog.dismissDialog()
                             }
                         } catch (error: Exception) {
                             withContext(Dispatchers.Main) {
+                                loadingDialog.dismissDialog()
                                 Toast.makeText(
                                     requireActivity(),
                                     "Failed to process the image: ${error.message}",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                loadingDialog.dismissDialog()
                             }
                         }
                     }
@@ -233,7 +233,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             manualSubmission = true
         }
 
-        calculateEmissionsForIngredient(ingredient, ingredientWeight, selectedWeight)
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+            calculateEmissionsForIngredient(ingredient, ingredientWeight, selectedWeight)
+        }
 
         ingredientTextView.setText("")
         weightTextView.setText("")
@@ -251,7 +253,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                         .replace("[^A-Za-z0-9 ]".toRegex(), "")
                         .lowercase()
 
-                    if (element.text.matches("-?\\d+(\\.\\d+)?".toRegex())) {
+                    if (element.text.matches("-?\\d*(\\.\\d+)?".toRegex())) {
                         ingredientWeight += element.text.toDouble().absoluteValue
                     } else if (element.text.matches("\\d{1,5}([.]\\d{1,3}|(\\s\\d{1,5})?[/]\\d{1,3})?".toRegex())) {
                         ingredientWeight += convertFractionToDecimal(element.text).absoluteValue
@@ -383,18 +385,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             }
         }
 
-        currentEmissionsScore = currentEmissionsScore.add(score.setScale(2, RoundingMode.HALF_UP))
-        currentEmissionsTextView.setText(
-            scoreColourChange(
-                requireActivity(),
-                "Current GHG Emissions:",
-                currentEmissionsScore,
-                "1.85",
-                "2.05"
-            ),
-            TextView.BufferType.SPANNABLE
-        )
-
         Log.d("sdsdfsdfas", "---------------------------------------------------------------------------------------------------------------")
     }
 
@@ -427,7 +417,19 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         return newWeight
     }
 
-    private fun addIngredientGHGCard(noIngrMsg: String, scoreToDisplay: BigDecimal, italicizeText: Boolean) {
+    private fun addIngredientGHGCard(noIngrMsg: String, scoreToDisplay: BigDecimal, italicizeText: Boolean) = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+        currentEmissionsScore = currentEmissionsScore.add(scoreToDisplay.setScale(2, RoundingMode.HALF_UP))
+        currentEmissionsTextView.setText(
+            scoreColourChange(
+                requireActivity(),
+                "Current GHG Emissions:",
+                currentEmissionsScore,
+                "1.85",
+                "2.05"
+            ),
+            TextView.BufferType.SPANNABLE
+        )
+
         val item = IngredientCard(noIngrMsg, scoreToDisplay, italicizeText)
         ingredientsEmissionsList.add(item)
         ingredientsRecyclerView.apply {

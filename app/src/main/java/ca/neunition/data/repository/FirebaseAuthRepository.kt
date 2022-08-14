@@ -15,13 +15,12 @@ import ca.neunition.data.remote.response.User
 import ca.neunition.util.Constants
 import ca.neunition.util.toastErrorMessages
 import com.google.firebase.auth.AuthCredential
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 class FirebaseAuthRepository(private val application: Application) {
+    private val scope = CoroutineScope(Dispatchers.IO)
+    
     /**
      * Proceed with the Firebase authentication process.
      *
@@ -37,7 +36,7 @@ class FirebaseAuthRepository(private val application: Application) {
     ): MutableLiveData<User> {
         val authenticatedUserMutableLiveData = MutableLiveData<User>()
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 Constants.FIREBASE_AUTH.signInWithCredential(credential).await().let {
                     val isNewUser = it.additionalUserInfo!!.isNewUser
@@ -99,7 +98,7 @@ class FirebaseAuthRepository(private val application: Application) {
         val newUserMutableLiveData = MutableLiveData<User>()
         val userRef = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 userRef.setValue(authenticatedUser).await().let {
                     authenticatedUser.isCreated = true
@@ -119,5 +118,9 @@ class FirebaseAuthRepository(private val application: Application) {
         }
 
         return newUserMutableLiveData
+    }
+
+    fun cancelCoroutines() {
+        scope.cancel()
     }
 }

@@ -38,4 +38,8 @@ class FirebaseAuthViewModel(application: Application) : AndroidViewModel(applica
     fun createUser(authenticatedUser: User, provider: String): LiveData<User> {
         return authRepository.createUserInDatabaseIfNotExists(authenticatedUser, provider)
     }
+
+    fun cancelCoroutines() {
+        authRepository.cancelCoroutines()
+    }
 }

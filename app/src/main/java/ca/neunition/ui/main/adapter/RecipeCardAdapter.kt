@@ -29,9 +29,6 @@ import ca.neunition.util.spannableFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
 class RecipeCardAdapter(
@@ -48,9 +45,6 @@ class RecipeCardAdapter(
         val currentRecipe = recipesList[position]
 
         Glide.get(holder.itemView.context).clearMemory()
-        CoroutineScope(Dispatchers.Default).launch {
-            Glide.get(holder.itemView.context).clearDiskCache()
-        }
         Glide.with(holder.itemView.context)
             .asBitmap()
             .load(currentRecipe.recipeImage)

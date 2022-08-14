@@ -31,4 +31,8 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
     fun getUserFromDatabase(): LiveData<User> {
         return splashRepository.addUserToLiveData()
     }
+
+    fun cancelCoroutines() {
+        splashRepository.cancelCoroutines()
+    }
 }

@@ -126,6 +126,7 @@
         android:elevation="2dp"
         android:layoutAnimation="@anim/ingredients_recycler_view_animation"
         android:padding="2dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@+id/upload_ingredients_photo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

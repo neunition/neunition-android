@@ -15,16 +15,15 @@ import ca.neunition.data.remote.response.User
 import ca.neunition.util.Constants
 import ca.neunition.util.toastErrorMessages
 import com.google.firebase.database.DatabaseReference
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 
 class SplashRepository(
     private val application: Application,
     private val user: User = User(),
 ) {
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     /**
      * Check if user is already logged into Firebase.
      *
@@ -53,7 +52,7 @@ class SplashRepository(
         val userMutableLiveData = MutableLiveData<User>()
         val userRef: DatabaseReference = Constants.FIREBASE_DATABASE.getReference("/users/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
                 userRef.get().await().let {
                     if (it.exists()) {
@@ -75,5 +74,9 @@ class SplashRepository(
         }
 
         return userMutableLiveData
+    }
+
+    fun cancelCoroutines() {
+        scope.cancel()
     }
 }
