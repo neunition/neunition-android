@@ -25,10 +25,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import ca.neunition.R
 import ca.neunition.data.remote.response.RecipeCard
+import ca.neunition.util.Constants
 import ca.neunition.util.spannableFactory
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
 import java.math.BigDecimal
 
 class RecipeCardAdapter(
@@ -44,13 +43,11 @@ class RecipeCardAdapter(
     override fun onBindViewHolder(holder: RecipeCardViewHolder, position: Int) {
         val currentRecipe = recipesList[position]
 
-        Glide.get(holder.itemView.context).clearMemory()
         Glide.with(holder.itemView.context)
             .asBitmap()
             .load(currentRecipe.recipeImage)
             .error(R.drawable.ic_baseline_error)
-            .apply(RequestOptions.skipMemoryCacheOf(true))
-            .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE))
+            .apply(Constants.REQUEST_OPTIONS)
             .into(holder.recipeImageView)
 
         holder.apply {

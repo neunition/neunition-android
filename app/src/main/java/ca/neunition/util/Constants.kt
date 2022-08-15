@@ -9,6 +9,8 @@
 
 package ca.neunition.util
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
@@ -29,6 +31,11 @@ object Constants {
 
     val DINNER_CHANNEL_ID: String by lazy { "DINNER_NOTIFICATION" }
     val DINNER_NOTIFICATION_ID: Int by lazy { 333 }
+
+    val REQUEST_OPTIONS: RequestOptions by lazy {
+        RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE)
+            .skipMemoryCache(true)
+    }
 
     // CO2 scores for each ingredient per gram
     val INGREDIENTS: HashMap<String, Double> by lazy {

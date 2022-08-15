@@ -31,6 +31,7 @@ import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
+import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import androidx.viewpager2.widget.ViewPager2
 import ca.neunition.R
 import ca.neunition.di.NotificationsClass
@@ -39,8 +40,8 @@ import ca.neunition.ui.main.adapter.ViewPager2Adapter
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
 import ca.neunition.util.*
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.imageview.ShapeableImageView
@@ -57,17 +58,16 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
 
-    private var currentProfileImageUrl = ""
-
     private lateinit var loadingDialog: LoadingDialog
 
-    private lateinit var fullNameTextView: AppCompatTextView
     private lateinit var profileImageView: ShapeableImageView
     private lateinit var settingsImageView: AppCompatImageButton
+    private lateinit var fullNameTextView: AppCompatTextView
     private lateinit var progressBar: ContentLoadingProgressBar
     private lateinit var noInternet: AppCompatTextView
     private lateinit var appBar: AppBarLayout
@@ -76,6 +76,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sharedPreferences: SharedPreferences
     @Inject lateinit var notificationsClass: NotificationsClass
+
+    private var currentProfileImageUrl = ""
+    private lateinit var profilePictureProgress: CircularProgressDrawable
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,9 +98,9 @@ class MainActivity : AppCompatActivity() {
             notificationsClass.createNotificationChannel()
         }
 
-        fullNameTextView = findViewById(R.id.user_full_name_text_view)
         profileImageView = findViewById(R.id.profile_image_view)
         settingsImageView = findViewById(R.id.settings_button)
+        fullNameTextView = findViewById(R.id.user_full_name_text_view)
         progressBar = findViewById(R.id.circular_progress_bar)
         noInternet = findViewById(R.id.no_internet_text_view)
         appBar = findViewById(R.id.app_bar_layout)
@@ -128,6 +131,13 @@ class MainActivity : AppCompatActivity() {
             }
         }.attach()
 
+        profilePictureProgress = CircularProgressDrawable(this)
+        profilePictureProgress.apply {
+            setColorSchemeColors(ContextCompat.getColor(this@MainActivity, android.R.color.white))
+            setStyle(CircularProgressDrawable.LARGE)
+            start()
+        }
+
         // Check to see if the user is connected to the network
         if (!isOnline(applicationContext)) {
             progressBar.visibility = View.INVISIBLE
@@ -146,26 +156,29 @@ class MainActivity : AppCompatActivity() {
                     TextView.BufferType.SPANNABLE
                 )
 
-                lifecycleScope.launch(Dispatchers.Default) {
-                    Glide.get(applicationContext).clearDiskCache()
-                }
-
                 val imgUrl = user.profileImageUrl
                 if (imgUrl != "" && currentProfileImageUrl != imgUrl) {
                     currentProfileImageUrl = imgUrl
-                    Glide.with(applicationContext)
+                    lifecycleScope.launch(Dispatchers.Default) {
+                        Glide.get(this@MainActivity).clearDiskCache()
+                    }
+                    Glide.get(this).clearMemory()
+                    Glide.with(this)
+                        .asBitmap()
                         .load(currentProfileImageUrl)
-                        .apply(RequestOptions.skipMemoryCacheOf(true))
-                        .apply(RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE))
+                        .placeholder(profilePictureProgress)
+                        .transition(withCrossFade(factory))
+                        .apply(Constants.REQUEST_OPTIONS)
                         .into(profileImageView)
                 }
 
                 profileImageView.visibility = View.VISIBLE
-                fullNameTextView.visibility = View.VISIBLE
                 settingsImageView.visibility = View.VISIBLE
+                fullNameTextView.visibility = View.VISIBLE
                 appBar.visibility = View.VISIBLE
                 tabLayout.visibility = View.VISIBLE
                 viewPager2.visibility = View.VISIBLE
+
                 progressBar.visibility = View.INVISIBLE
                 noInternet.visibility = View.INVISIBLE
             }
@@ -179,9 +192,8 @@ class MainActivity : AppCompatActivity() {
 
         val profileImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
             if (res.resultCode == Activity.RESULT_OK && res.data != null) {
-                // Proceed and check what the selected image was
                 val profileImageUri = res.data!!.data!!
-                val fileSize = getImageSize(applicationContext, profileImageUri)
+                val fileSize = getImageSize(this, profileImageUri)
 
                 if (fileSize > 2.0) {
                     val builder = MaterialAlertDialogBuilder(this).apply {
@@ -275,5 +287,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private val FIREBASE_STORAGE: FirebaseStorage by lazy { Firebase.storage }
+        private val factory: DrawableCrossFadeFactory by lazy {
+            DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
+        }
     }
 }

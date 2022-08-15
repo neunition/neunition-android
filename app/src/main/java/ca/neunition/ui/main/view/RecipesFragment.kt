@@ -37,6 +37,7 @@ import ca.neunition.util.Constants
 import ca.neunition.util.hideKeyboard
 import ca.neunition.util.isOnline
 import ca.neunition.util.toastErrorMessages
+import com.bumptech.glide.Glide
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -382,6 +383,10 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         recipesList.clear()
         recipesRecyclerView.adapter?.notifyDataSetChanged()
         firebaseDatabaseViewModel.updateChildValue("recipesJsonData", "")
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+            Glide.get(requireActivity()).clearDiskCache()
+        }
+        Glide.get(requireActivity()).clearMemory()
     }
 
     /**
