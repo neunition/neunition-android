@@ -220,7 +220,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
     private fun verifyIngredientSubmission() {
         val ingredient = ingredientTextView.text.toString().lowercase().trim()
         val ingredientWeight = weightTextView.text.toString()
-        val selectedWeight = weightDropDown.editText?.text.toString()
+        val selectedWeight = weightDropDown.editText?.text.toString().lowercase()
 
         if (ingredient.isEmpty() || ingredientWeight.isEmpty() || selectedWeight.isEmpty()) {
             Toast.makeText(
@@ -303,44 +303,31 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         var score = BigDecimal("0.00")
         var ingredientExists = false
 
-        Log.d("sdsdfsdfas", "Line: $ingredient")
-
         if (selectedWeight != "") {
             var allWords = Regex("[^-./%\\w\\d\\p{L}\\p{M} ]").replace(ingredient.lowercase(), "")
             allWords = Regex("[-]").replace(allWords, " ")
             val keyWords = allWords.split("\\s".toRegex())
 
             val ingredientInGrams = gramsConverter(BigDecimal(ingredientWeight), selectedWeight)
-            Log.d("sdsdfsdfas", "Weight: $ingredientWeight $selectedWeight")
-            Log.d("sdsdfsdfas", "In grams: $ingredientInGrams")
 
             for (word in keyWords.indices) {
                 if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
-                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]} ${keyWords[word + 1]}")
-                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()} x $ingredientInGrams")
                     score = score.add(
                         BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
-                    Log.d("sdsdfsdfas", "Score: $score")
                     break
                 } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
-                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}")
-                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()} x $ingredientInGrams")
                     score = score.add(
                         BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
-                    Log.d("sdsdfsdfas", "Score: $score")
                     break
                 } else if (keyWords[word] in Constants.INGREDIENTS) {
-                    Log.d("sdsdfsdfas", "Found: ${keyWords[word]}")
-                    Log.d("sdsdfsdfas", "${Constants.INGREDIENTS[keyWords[word]].toString()} x $ingredientInGrams")
                     score = score.add(
                         BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
-                    Log.d("sdsdfsdfas", "Score: $score")
                     break
                 }
             }
@@ -384,8 +371,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 )
             }
         }
-
-        Log.d("sdsdfsdfas", "---------------------------------------------------------------------------------------------------------------")
     }
 
     /**
@@ -407,11 +392,10 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             "cup", "cups" -> newWeight = weight.multiply(BigDecimal("236.58824"))
             "lb", "lbs", "pound", "pounds" -> newWeight = weight.multiply(BigDecimal("453.59237"))
             "oz", "ounce", "ounces" -> newWeight = weight.multiply(BigDecimal("28.34952"))
-            "fl oz" -> newWeight = weight.multiply(BigDecimal("29.5735295625"))
             "ml", "milliliter", "milliliters", "millilitre", "millilitres" -> newWeight = weight
             "l", "liter", "liters", "litre", "litres" -> newWeight = weight.multiply(BigDecimal("1000"))
             "gal", "gallon", "gallons" -> newWeight = weight.multiply(BigDecimal("3785.411784"))
-            "egg", "eggs" -> newWeight = weight
+            "egg", "eggs" -> newWeight = weight.multiply(BigDecimal("50"))
             "clove", "cloves" -> newWeight = weight.multiply(BigDecimal("4"))
         }
         return newWeight
@@ -506,11 +490,11 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 "cups",
                 "lbs",
                 "oz",
-                "fl oz",
                 "mL",
                 "L",
                 "gal",
-                "eggs"
+                "eggs",
+                "clove"
             )
         }
 
@@ -545,9 +529,6 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 "oz",
                 "ounce",
                 "ounces",
-                //"fl oz",
-                //"fluid ounce",
-                //"fluid ounces",
                 "ml",
                 "milliliter",
                 "milliliters",
