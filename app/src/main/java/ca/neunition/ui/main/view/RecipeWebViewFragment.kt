@@ -30,7 +30,10 @@ import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage
 import org.adblockplus.libadblockplus.android.webview.AdblockWebView
 
 @SuppressLint("SourceLockedOrientationActivity")
-class RecipeWebViewFragment(private val recipeTitle: String, private var recipeUrl: String) : DialogFragment(), ComponentCallbacks2 {
+class RecipeWebViewFragment(
+    private val recipeTitle: String,
+    private val recipeUrl: String
+) : DialogFragment(), ComponentCallbacks2 {
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: LinearProgressIndicator
     private var recipeWebView: AdblockWebView? = null
@@ -52,7 +55,11 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
 
             AdblockHelper
                 .get()
-                .init(requireActivity(), requireActivity().filesDir.absolutePath, AdblockHelper.PREFERENCE_NAME)
+                .init(
+                    requireActivity(),
+                    requireActivity().filesDir.absolutePath,
+                    AdblockHelper.PREFERENCE_NAME
+                )
                 .preloadSubscriptions(AdblockHelper.PRELOAD_PREFERENCE_NAME, map)
         }
 
@@ -66,7 +73,11 @@ class RecipeWebViewFragment(private val recipeTitle: String, private var recipeU
         AdblockHelper.get().storage.save(adBlockSettings)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
         return inflater.inflate(R.layout.fragment_recipe_web_view, container, false)
     }
