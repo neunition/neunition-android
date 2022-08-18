@@ -293,7 +293,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         RecipeWebViewFragment(
             recipesList[position].recipeTitle.toString(),
             recipesList[position].recipeUrl.toString()
-        ).display(childFragmentManager)
+        ).show(childFragmentManager, RECIPE_WEB_VIEW_TAG)
     }
 
     override fun onAddEmissionsClick(position: Int) {
@@ -526,5 +526,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         private val jsonAdapter: JsonAdapter<ArrayList<RecipeCard>> by lazy {
             moshi.adapter(type)
         }
+
+        private val RECIPE_WEB_VIEW_TAG: String by lazy { "RECIPE_WEB_VIEW" }
     }
 }

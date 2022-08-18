@@ -21,7 +21,6 @@ import android.view.ViewGroup
 import android.webkit.*
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentManager
 import ca.neunition.R
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.adblockplus.libadblockplus.android.AndroidHttpClientResourceWrapper
@@ -162,19 +161,6 @@ class RecipeWebViewFragment(
     }
 
     /**
-     * Display the recipe in a webview.
-     *
-     * @param fragmentManager the fragment that will contain the full screen dialog fragment
-     *
-     * @return the webview fragment hosting the recipe
-     */
-    fun display(fragmentManager: FragmentManager): RecipeWebViewFragment {
-        val fullScreenDialog = RecipeWebViewFragment(recipeTitle, recipeUrl)
-        fullScreenDialog.show(fragmentManager, FULL_SCREEN_DIALOG_TAG)
-        return fullScreenDialog
-    }
-
-    /**
      * Clear webview memory.
      */
     private fun clearRecipeWebView() {
@@ -199,9 +185,5 @@ class RecipeWebViewFragment(
         CookieManager.getInstance().removeAllCookies(null)
         CookieManager.getInstance().flush()
         WebStorage.getInstance().deleteAllData()
-    }
-
-    companion object {
-        private val FULL_SCREEN_DIALOG_TAG: String by lazy { "FULL_SCREEN_DIALOG" }
     }
 }
