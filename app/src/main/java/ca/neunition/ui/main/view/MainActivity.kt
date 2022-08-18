@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var profilePictureProgress: CircularProgressDrawable
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
