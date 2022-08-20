@@ -481,7 +481,6 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                 "Low-Sodium",
                 "Low-Sugar",
                 "Lupine-Free",
-                "Mediterranean",
                 "Mollusk-Free",
                 "Mustard-Free",
                 "Paleo",
