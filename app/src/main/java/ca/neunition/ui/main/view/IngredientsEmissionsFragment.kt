@@ -384,7 +384,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         var newWeight = BigDecimal("0.00")
         when (measurement) {
             "mg", "milligram", "milligrams" -> newWeight = weight.divide(BigDecimal("1000"))
-            "g", "gram", "grams" -> newWeight = weight
+            "g", "gm", "gms", "gram", "grams" -> newWeight = weight
             "kg", "kgs", "kilogram", "kilograms", "kilo", "kilos" -> newWeight = weight.multiply(BigDecimal("1000"))
             "tsp", "tsps", "teaspoon", "teaspoons" -> newWeight = weight.multiply(BigDecimal("4.928921594"))
             "tbsp", "tbsps", "tablespoon", "tablespoons" -> newWeight = weight.multiply(BigDecimal("14.78676"))
@@ -486,14 +486,14 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 "kg",
                 "tsp",
                 "tbsp",
-                "cups",
-                "lbs",
+                "cup",
+                "lb",
                 "oz",
                 "mL",
                 "L",
                 "gal",
-                "eggs",
-                "clove"
+                "egg(s)",
+                "clove(s)"
             )
         }
 
@@ -503,6 +503,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 "milligram",
                 "milligrams",
                 "g",
+                "gm",
+                "gms",
                 "gram",
                 "grams",
                 "kg",
