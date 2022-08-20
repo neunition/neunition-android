@@ -51,6 +51,8 @@ class RecipeCardAdapter(
             .into(holder.recipeImageView)
 
         holder.apply {
+            recipeImageView.contentDescription = "See the full recipe of ${currentRecipe.recipeTitle}"
+
             recipeTitleView.setText(
                 SpannableString(currentRecipe.recipeTitle.trimRecipeTitle()),
                 TextView.BufferType.SPANNABLE
@@ -60,6 +62,8 @@ class RecipeCardAdapter(
                 recipeCardScore(holder.itemView.context, currentRecipe.recipeScore),
                 TextView.BufferType.SPANNABLE
             )
+
+            recipeAddEmissionsButton.contentDescription = "Add the the greenhouse gas emissions from ${currentRecipe.recipeTitle} to your current GHG records"
         }
     }
 
@@ -72,7 +76,7 @@ class RecipeCardAdapter(
         val recipeTitleView: AppCompatTextView = itemView.findViewById(R.id.recipe_title_text_view)
         val recipeScoreView: AppCompatTextView =
             itemView.findViewById(R.id.recipe_ghg_score_text_view)
-        private val recipeAddEmissionsButton: AppCompatImageButton =
+        val recipeAddEmissionsButton: AppCompatImageButton =
             itemView.findViewById(R.id.recipe_add_emissions_button)
 
         init {

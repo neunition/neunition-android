@@ -27,7 +27,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TouchTargetSizeCheck" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/weight_text_view"
@@ -51,7 +52,8 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ingredient_text_view" />
+        app:layout_constraintTop_toBottomOf="@+id/ingredient_text_view"
+        tools:ignore="TouchTargetSizeCheck" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/drop_down_menu"
@@ -73,7 +75,8 @@
             android:layout_height="wrap_content"
             android:inputType="none"
             android:paddingStart="8dp"
-            android:paddingEnd="8dp" />
+            android:paddingEnd="8dp"
+            tools:ignore="TouchTargetSizeCheck" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.appcompat.widget.AppCompatButton
@@ -83,6 +86,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="32dp"
         android:background="@drawable/ingredients_emissions_buttons_touch_selector"
+        android:contentDescription="@string/add_ingredient_to_your_list"
         android:elevation="2dp"
         android:fontFamily="@font/roboto"
         android:stateListAnimator="@null"
@@ -92,7 +96,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/drop_down_menu"
-        app:layout_constraintTop_toTopOf="@+id/drop_down_menu" />
+        app:layout_constraintTop_toTopOf="@+id/drop_down_menu"
+        tools:ignore="TouchTargetSizeCheck" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/current_score_text_view"
@@ -141,6 +146,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/ingredients_emissions_buttons_touch_selector"
+        android:contentDescription="@string/upload_image_ingredients"
         android:elevation="2dp"
         android:padding="12dp"
         android:src="@drawable/ic_add_photo_alternate"
@@ -158,6 +164,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:background="@drawable/ingredients_emissions_buttons_touch_selector"
+        android:contentDescription="@string/add_emissions_ingredients_records"
         android:elevation="2dp"
         android:padding="12dp"
         android:src="@drawable/ic_check"
@@ -173,6 +180,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/ingredients_emissions_buttons_touch_selector"
+        android:contentDescription="@string/clear_ingredients"
         android:elevation="2dp"
         android:padding="12dp"
         android:src="@drawable/ic_clear_all"

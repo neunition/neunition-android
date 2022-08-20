@@ -22,7 +22,6 @@
             android:layout_width="match_parent"
             android:layout_height="165dp"
             android:background="@android:color/darker_gray"
-            android:contentDescription="@string/image_of_the_recipe"
             android:scaleType="fitXY"
             android:src="@drawable/ic_baseline_error"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -38,6 +37,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="1dp"
+            android:focusable="true"
             android:fontFamily="@font/roboto_bold"
             android:paddingStart="0dp"
             android:paddingEnd="3dp"
@@ -59,6 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginBottom="8dp"
+            android:focusable="true"
             android:fontFamily="@font/roboto_bold"
             android:paddingStart="0dp"
             android:paddingEnd="3dp"
@@ -80,12 +81,10 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/recipe_add_emissions_button_touch_selector"
-            android:contentDescription="@string/add_recipe_ghg"
             android:elevation="2dp"
             android:src="@drawable/ic_baseline_add"
-            android:stateListAnimator="@null"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:ignore="TouchTargetSizeCheck,ImageContrastCheck" />
+            tools:ignore="TouchTargetSizeCheck,ImageContrastCheck,SpeakableTextPresentCheck" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

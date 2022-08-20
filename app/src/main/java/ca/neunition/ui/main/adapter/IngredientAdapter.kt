@@ -37,10 +37,14 @@ class IngredientAdapter(
 
     override fun onBindViewHolder(holder: IngredientViewHolder, position: Int) {
         val currentIngredient = ingredientsList[position]
-        holder.ingredientCalcTextView.setText(
-            ingredientCardText(currentIngredient.ingredientText, currentIngredient.italicizeText),
-            TextView.BufferType.SPANNABLE
-        )
+        holder.apply {
+            ingredientCalcTextView.setText(
+                ingredientCardText(currentIngredient.ingredientText, currentIngredient.italicizeText),
+                TextView.BufferType.SPANNABLE
+            )
+
+            deleteIngredientImageView.contentDescription = "Remove ${currentIngredient.ingredientText}"
+        }
     }
 
     override fun getItemCount() = ingredientsList.size
@@ -49,7 +53,7 @@ class IngredientAdapter(
         View.OnClickListener {
         val ingredientCalcTextView: AppCompatTextView =
             itemView.findViewById(R.id.calculation_of_ingredient_text_view)
-        private val deleteIngredientImageView: AppCompatImageView =
+        val deleteIngredientImageView: AppCompatImageView =
             itemView.findViewById(R.id.ingredient_delete)
 
         init {

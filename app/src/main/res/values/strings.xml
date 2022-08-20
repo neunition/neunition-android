@@ -35,4 +35,8 @@
     <string name="progress_bar_recipe_description">A indeterminate progress bar for loading the recipe.</string>
     <string name="random_selection_of_recipes">Get a random selection of recipes</string>
     <string name="add_recipe_ghg">Add the greenhouse gas emissions of this recipe to your current greenhouse gas emissions records.</string>
+    <string name="add_ingredient_to_your_list">Add ingredient to your list</string>
+    <string name="upload_image_ingredients">Upload an image with a list of ingredients to calculate total GHG emissions</string>
+    <string name="add_emissions_ingredients_records">Add calculated GHG emissions for your ingredients to your GHG emissions records</string>
+    <string name="clear_ingredients">Clear list of ingredients</string>
 </resources>
