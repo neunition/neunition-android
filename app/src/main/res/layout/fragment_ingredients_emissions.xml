@@ -19,6 +19,7 @@
         android:hint="@string/ingredient"
         android:inputType="text"
         android:maxLines="1"
+        android:minHeight="48dp"
         android:padding="12dp"
         android:textColor="@android:color/black"
         android:textColorHint="#757575"
@@ -27,8 +28,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="TouchTargetSizeCheck" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.AppCompatEditText
         android:id="@+id/weight_text_view"
@@ -42,6 +42,7 @@
         android:hint="@string/weight"
         android:inputType="numberDecimal"
         android:maxLines="1"
+        android:minHeight="48dp"
         android:padding="12dp"
         android:textColor="@android:color/black"
         android:textColorHint="#757575"
@@ -52,8 +53,7 @@
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintHorizontal_weight="1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ingredient_text_view"
-        tools:ignore="TouchTargetSizeCheck" />
+        app:layout_constraintTop_toBottomOf="@+id/ingredient_text_view" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/drop_down_menu"
@@ -73,10 +73,10 @@
             android:id="@+id/auto_complete_weights"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:hint="@string/unit"
             android:inputType="none"
             android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            tools:ignore="TouchTargetSizeCheck" />
+            android:paddingEnd="8dp" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.appcompat.widget.AppCompatButton
@@ -96,8 +96,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toEndOf="@+id/drop_down_menu"
-        app:layout_constraintTop_toTopOf="@+id/drop_down_menu"
-        tools:ignore="TouchTargetSizeCheck" />
+        app:layout_constraintTop_toTopOf="@+id/drop_down_menu" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/current_score_text_view"
