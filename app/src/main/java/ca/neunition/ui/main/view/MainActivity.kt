@@ -58,7 +58,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private lateinit var firebaseDatabaseViewModel: FirebaseDatabaseViewModel
@@ -168,7 +167,7 @@ class MainActivity : AppCompatActivity() {
                         .asBitmap()
                         .load(currentProfileImageUrl)
                         .placeholder(profilePictureProgress)
-                        .transition(withCrossFade(factory))
+                        .transition(withCrossFade(FACTORY))
                         .apply(Constants.REQUEST_OPTIONS)
                         .into(profileImageView)
                 }
@@ -288,7 +287,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private val FIREBASE_STORAGE: FirebaseStorage by lazy { Firebase.storage }
-        private val factory: DrawableCrossFadeFactory by lazy {
+        private val FACTORY: DrawableCrossFadeFactory by lazy {
             DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
         }
     }
