@@ -11,6 +11,7 @@ package ca.neunition.ui.main.view
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.text.*
 import android.text.method.LinkMovementMethod
@@ -27,6 +28,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import ca.neunition.R
 import ca.neunition.ui.main.viewmodel.FirebaseAuthViewModel
+import ca.neunition.util.Constants
 import ca.neunition.util.changeStatusBarColor
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -45,11 +47,12 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 
 class LoginActivity : AppCompatActivity() {
+    private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
+
     private lateinit var facebookSignInButton: AppCompatButton
     private lateinit var googleSignInButton: AppCompatButton
-    private lateinit var termsPrivacyAgreement: AppCompatTextView
 
-    private lateinit var firebaseAuthViewModel: FirebaseAuthViewModel
+    private lateinit var termsPrivacyAgreement: AppCompatTextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,10 +66,10 @@ class LoginActivity : AppCompatActivity() {
         termsPrivacyAgreement = findViewById(R.id.terms_privacy_agreement)
         termsPrivacyAgreement.makeLinks(
             Pair("Terms & Conditions", View.OnClickListener {
-                // link to terms & conditions
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.google.com/"))
             }),
             Pair("Privacy Policy", View.OnClickListener {
-                // link to privacy policy
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.cnn.com/"))
             })
         )
 

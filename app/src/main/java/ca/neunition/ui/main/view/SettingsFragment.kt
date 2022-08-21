@@ -12,6 +12,7 @@ package ca.neunition.ui.main.view
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -60,6 +61,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private lateinit var logOutPreference: Preference
     private lateinit var deleteAccountPreference: Preference
 
+    private lateinit var aboutUsPreference: Preference
+    private lateinit var rateUsPreference: Preference
+    private lateinit var privacyPolicyPreference: Preference
+    private lateinit var termsAndConditionsPreference: Preference
+    private lateinit var helpAndSupportPreference: Preference
+
     private lateinit var loadingDialog: LoadingDialog
 
     @Inject lateinit var notificationsClass: NotificationsClass
@@ -93,6 +100,12 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         logOutPreference = findPreference("logout_preference")!!
         deleteAccountPreference = findPreference("delete_account_preference")!!
+
+        aboutUsPreference = findPreference("about_us_preference")!!
+        rateUsPreference = findPreference("rate_us_preference")!!
+        privacyPolicyPreference = findPreference("privacy_policy_preference")!!
+        termsAndConditionsPreference = findPreference("terms_conditions_preference")!!
+        helpAndSupportPreference = findPreference("help_and_support_preference")!!
 
         loadingDialog = LoadingDialog(requireActivity())
 
@@ -243,6 +256,36 @@ class SettingsFragment : PreferenceFragmentCompat() {
                         return@OnClickListener
                     })
                 builder.create().show()
+                true
+            }
+
+        aboutUsPreference.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                true
+            }
+
+        rateUsPreference.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                true
+            }
+
+        privacyPolicyPreference.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                true
+            }
+
+        termsAndConditionsPreference.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                true
+            }
+
+        helpAndSupportPreference.onPreferenceClickListener =
+            Preference.OnPreferenceClickListener {
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
                 true
             }
     }
