@@ -47,6 +47,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.google.firebase.appcheck.FirebaseAppCheck
+import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -81,6 +83,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -121,12 +128,15 @@ class MainActivity : AppCompatActivity() {
             when (position) {
                 0 -> {
                     tab.icon = ContextCompat.getDrawable(this, R.drawable.first_tab_button)
+                    tab.contentDescription = "Your food greenhouse gas emissions records"
                 }
                 1 -> {
                     tab.icon = ContextCompat.getDrawable(this, R.drawable.second_tab_button)
+                    tab.contentDescription = "Search for recipes"
                 }
                 else -> {
                     tab.icon = ContextCompat.getDrawable(this, R.drawable.third_tab_button)
+                    tab.contentDescription = "Calculate the greenhouse gas emissions for a ingredient"
                 }
             }
         }.attach()
