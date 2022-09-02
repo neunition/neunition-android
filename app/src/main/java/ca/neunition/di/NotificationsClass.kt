@@ -117,10 +117,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
             )
         }
 
-        breakfastAlarmMgr?.setInexactRepeating(
+        breakfastAlarmMgr?.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             breakfastCalendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
             breakfastAlarmIntent
         )
     }
@@ -150,10 +149,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
             )
         }
 
-        lunchAlarmMgr?.setInexactRepeating(
+        lunchAlarmMgr?.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             lunchCalendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
             lunchAlarmIntent
         )
     }
@@ -183,10 +181,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
             )
         }
 
-        dinnerAlarmMgr?.setInexactRepeating(
+        dinnerAlarmMgr?.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             dinnerCalendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
             dinnerAlarmIntent
         )
     }
