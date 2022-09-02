@@ -12,6 +12,7 @@ package ca.neunition.util
 import androidx.browser.customtabs.CustomTabsIntent
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.ads.AdRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.FirebaseDatabase
@@ -34,6 +35,12 @@ object Constants {
     val DINNER_NOTIFICATION_ID: Int by lazy { 333 }
 
     val CUSTOM_TABS_BUILDER: CustomTabsIntent by lazy { CustomTabsIntent.Builder().build() }
+
+    val AD_REQUEST: AdRequest by lazy { AdRequest.Builder().build() }
+    val BANNER_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/6300978111" }
+    val REWARDED_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/5224354917" }
+    val RECIPES_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/1033173712" }
+    val INGREDIENTS_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/1033173712" }
 
     val REQUEST_OPTIONS: RequestOptions by lazy {
         RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE)

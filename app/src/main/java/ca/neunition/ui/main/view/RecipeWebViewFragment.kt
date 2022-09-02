@@ -13,20 +13,27 @@ import android.annotation.SuppressLint
 import android.content.ComponentCallbacks2
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import android.widget.FrameLayout
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.DialogFragment
 import ca.neunition.R
+import ca.neunition.util.Constants
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import org.adblockplus.libadblockplus.android.AndroidHttpClientResourceWrapper
 import org.adblockplus.libadblockplus.android.settings.AdblockHelper
 import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage
 import org.adblockplus.libadblockplus.android.webview.AdblockWebView
+
 
 @SuppressLint("SourceLockedOrientationActivity")
 class RecipeWebViewFragment(
@@ -36,6 +43,10 @@ class RecipeWebViewFragment(
     private lateinit var toolbar: Toolbar
     private lateinit var progressBar: LinearProgressIndicator
     private var recipeWebView: AdblockWebView? = null
+
+    private lateinit var adaptiveBannerAdView: AdView
+    private lateinit var adViewContainer: FrameLayout
+    private var initialLayoutComplete = false
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -87,6 +98,16 @@ class RecipeWebViewFragment(
         toolbar = view.findViewById(R.id.full_screen_dialog_toolbar)
         progressBar = view.findViewById(R.id.recipe_progress_bar)
         recipeWebView = view.findViewById(R.id.recipe_webview)
+        adViewContainer = view.findViewById(R.id.ad_view_web_container)
+
+        adaptiveBannerAdView = AdView(requireActivity())
+        adViewContainer.addView(adaptiveBannerAdView)
+        adViewContainer.viewTreeObserver.addOnGlobalLayoutListener {
+            if (!initialLayoutComplete) {
+                initialLayoutComplete = true
+                loadAdaptiveBanner()
+            }
+        }
 
         toolbar.also {
             it.setNavigationOnClickListener {
@@ -132,6 +153,16 @@ class RecipeWebViewFragment(
         recipeWebView?.loadUrl(recipeUrl)
     }
 
+    override fun onResume() {
+        super.onResume()
+        adaptiveBannerAdView.resume()
+    }
+
+    override fun onPause() {
+        adaptiveBannerAdView.pause()
+        super.onPause()
+    }
+
     override fun onTrimMemory(level: Int) {
         if (level == ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL && AdblockHelper.get().isInit) {
             AdblockHelper.get().provider.engine.onLowMemory()
@@ -146,11 +177,12 @@ class RecipeWebViewFragment(
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        adaptiveBannerAdView.destroy()
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         AdblockHelper.get().provider.release()
         clearRecipeWebView()
         clearAdAndWebStorage()
+        super.onDestroy()
     }
 
     override fun onDetach() {
@@ -158,6 +190,44 @@ class RecipeWebViewFragment(
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         clearRecipeWebView()
         clearAdAndWebStorage()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        initialLayoutComplete = false
+        adViewContainer.removeView(adaptiveBannerAdView)
+        adaptiveBannerAdView.destroy()
+
+        adaptiveBannerAdView = AdView(requireActivity())
+        adViewContainer.addView(adaptiveBannerAdView)
+        adViewContainer.viewTreeObserver.addOnGlobalLayoutListener {
+            if (!initialLayoutComplete) {
+                initialLayoutComplete = true
+                loadAdaptiveBanner()
+            }
+        }
+    }
+
+    private fun adAdapterSize(): AdSize {
+        val display = requireActivity().windowManager.defaultDisplay
+        val outMetrics = DisplayMetrics()
+        display.getMetrics(outMetrics)
+
+        val density = outMetrics.density
+
+        var adWidthPixels = adViewContainer.width.toFloat()
+        if (adWidthPixels == 0f) {
+            adWidthPixels = outMetrics.widthPixels.toFloat()
+        }
+
+        val adWidth = (adWidthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(requireActivity(), adWidth)
+    }
+
+    private fun loadAdaptiveBanner() {
+        adaptiveBannerAdView.adUnitId = Constants.BANNER_AD_UNIT_ID
+        adaptiveBannerAdView.setAdSize(adAdapterSize())
+        adaptiveBannerAdView.loadAd(Constants.AD_REQUEST)
     }
 
     /**

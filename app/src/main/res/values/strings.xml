@@ -40,4 +40,5 @@
     <string name="add_emissions_ingredients_records">Add calculated GHG emissions for your ingredients to your GHG emissions records</string>
     <string name="clear_ingredients">Clear list of ingredients</string>
     <string name="unit">Unit</string>
+    <string name="admob_app_id">ca-app-pub-2714747137112577~8955566415</string>
 </resources>

@@ -36,6 +36,11 @@ import ca.neunition.ui.common.dialog.LoadingDialog
 import ca.neunition.ui.main.adapter.IngredientAdapter
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
 import ca.neunition.util.*
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.google.android.material.textfield.TextInputLayout
 import com.google.mlkit.vision.common.InputImage
@@ -78,6 +83,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
     private lateinit var addEmissionsButton: AppCompatImageButton
     private lateinit var clearAllButton: AppCompatImageButton
 
+    private var mInterstitialAd: InterstitialAd? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -88,6 +95,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        loadInterstitialAd()
 
         loadingDialog = LoadingDialog(requireActivity())
 
@@ -432,20 +441,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
                 Toast.LENGTH_LONG
             ).show()
         } else if (currentEmissionsScore.compareTo(BigDecimal("0.00")) != 0) {
-            dailyScore = dailyScore.add(currentEmissionsScore)
-            weeklyScore = weeklyScore.add(currentEmissionsScore)
-            monthlyScore = monthlyScore.add(currentEmissionsScore)
-            yearlyScore = yearlyScore.add(currentEmissionsScore)
-            firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
-            firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
-            clearRecyclerView()
-            Toast.makeText(
-                requireActivity(),
-                "Thank you for your submission! Your GHG emissions have successfully been updated.",
-                Toast.LENGTH_LONG
-            ).show()
+            showInterstitialAd()
         } else if (ingredientsEmissionsList.isNotEmpty()) {
             clearRecyclerView()
             Toast.makeText(
@@ -476,6 +472,63 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             ),
             TextView.BufferType.SPANNABLE
         )
+    }
+
+    private fun loadInterstitialAd() {
+        InterstitialAd.load(
+            requireActivity(),
+            Constants.INGREDIENTS_INTERSTITIAL_AD_UNIT_ID,
+            Constants.AD_REQUEST,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    super.onAdFailedToLoad(adError)
+                    mInterstitialAd = null
+                }
+
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    super.onAdLoaded(interstitialAd)
+                    mInterstitialAd = interstitialAd
+                }
+            }
+        )
+    }
+
+    private fun showInterstitialAd() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd?.fullScreenContentCallback =
+                object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        mInterstitialAd = null
+                        loadInterstitialAd()
+                        Toast.makeText(
+                            requireActivity(),
+                            "Thank you for your submission! Your GHG emissions have successfully been updated.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        super.onAdFailedToShowFullScreenContent(adError)
+                        mInterstitialAd = null
+                    }
+
+                    override fun onAdShowedFullScreenContent() {
+                        super.onAdShowedFullScreenContent()
+                        dailyScore = dailyScore.add(currentEmissionsScore)
+                        weeklyScore = weeklyScore.add(currentEmissionsScore)
+                        monthlyScore = monthlyScore.add(currentEmissionsScore)
+                        yearlyScore = yearlyScore.add(currentEmissionsScore)
+                        firebaseDatabaseViewModel.updateChildValue("daily", dailyScore.toDouble())
+                        firebaseDatabaseViewModel.updateChildValue("weekly", weeklyScore.toDouble())
+                        firebaseDatabaseViewModel.updateChildValue("monthly", monthlyScore.toDouble())
+                        firebaseDatabaseViewModel.updateChildValue("yearly", yearlyScore.toDouble())
+                        clearRecyclerView()
+                    }
+                }
+            mInterstitialAd?.show(requireActivity())
+        } else {
+            loadInterstitialAd()
+        }
     }
 
     companion object {

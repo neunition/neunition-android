@@ -19,7 +19,9 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
 import android.text.SpannableString
+import android.util.DisplayMetrics
 import android.view.View
+import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -42,6 +44,9 @@ import ca.neunition.util.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.BitmapTransitionOptions.withCrossFade
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.MobileAds
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.imageview.ShapeableImageView
@@ -81,16 +86,18 @@ class MainActivity : AppCompatActivity() {
     private var currentProfileImageUrl = ""
     private lateinit var profilePictureProgress: CircularProgressDrawable
 
+    private lateinit var adaptiveBannerAdView: AdView
+    private lateinit var adViewContainer: FrameLayout
+    private var initialLayoutComplete = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        changeStatusBarColor()
+        MobileAds.initialize(this)
 
-        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
-            PlayIntegrityAppCheckProviderFactory.getInstance()
-        )
+        changeStatusBarColor()
 
         loadingDialog = LoadingDialog(this)
 
@@ -112,6 +119,21 @@ class MainActivity : AppCompatActivity() {
         appBar = findViewById(R.id.app_bar_layout)
         tabLayout = findViewById(R.id.tab_layout)
         viewPager2 = findViewById(R.id.view_pager)
+        adViewContainer = findViewById(R.id.ad_view_main_container)
+
+        adaptiveBannerAdView = AdView(this)
+        adViewContainer.addView(adaptiveBannerAdView)
+        adViewContainer.viewTreeObserver.addOnGlobalLayoutListener {
+            if (!initialLayoutComplete) {
+                initialLayoutComplete = true
+                loadAdaptiveBanner()
+            }
+        }
+
+        FirebaseAppCheck.getInstance().installAppCheckProviderFactory(
+            PlayIntegrityAppCheckProviderFactory.getInstance()
+        )
+
 
         fullNameTextView.setSpannableFactory(spannableFactory)
         TextViewCompat.setAutoSizeTextTypeWithDefaults(fullNameTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
@@ -244,6 +266,44 @@ class MainActivity : AppCompatActivity() {
                 )
             builder.create().show()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adaptiveBannerAdView.resume()
+    }
+
+    override fun onPause() {
+        adaptiveBannerAdView.pause()
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        adaptiveBannerAdView.destroy()
+        super.onDestroy()
+    }
+
+    private val adAdapterSize: AdSize
+        get() {
+            val display = windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = adViewContainer.width.toFloat()
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+        }
+
+    private fun loadAdaptiveBanner() {
+        adaptiveBannerAdView.adUnitId = Constants.BANNER_AD_UNIT_ID
+        adaptiveBannerAdView.setAdSize(adAdapterSize)
+        adaptiveBannerAdView.loadAd(Constants.AD_REQUEST)
     }
 
     /**

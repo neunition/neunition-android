@@ -38,6 +38,13 @@ import ca.neunition.util.hideKeyboard
 import ca.neunition.util.isOnline
 import ca.neunition.util.toastErrorMessages
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.FullScreenContentCallback
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
@@ -79,6 +86,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     private lateinit var recipesRecyclerView: RecyclerView
     private var recipesList = ArrayList<RecipeCard>()
 
+    private var mRewardedAd: RewardedAd? = null
+    private var mInterstitialAd: InterstitialAd? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -89,6 +99,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        loadRewardedAd()
+        loadInterstitialAd()
 
         loadingDialog = LoadingDialog(requireActivity())
 
@@ -290,6 +303,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
      * @param position the specific row to open the url
      */
     override fun onRecipeClick(position: Int) {
+        showInterstitialAd()
         RecipeWebViewFragment(
             recipesList[position].recipeTitle.toString(),
             recipesList[position].recipeUrl.toString()
@@ -378,6 +392,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
      * GET request is being made.
      */
     private fun processingGetRequest() {
+        showRewardedVideo()
         this.requireView().hideKeyboard()
         loadingDialog.startDialog()
         recipesList.clear()
@@ -443,8 +458,8 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
      * @param message Message to show the user
      */
     private fun noResults(title: String, message: String) {
-        val noCalcsBuilder = MaterialAlertDialogBuilder(this.requireActivity())
-        noCalcsBuilder.apply {
+        val noResultsBuilder = MaterialAlertDialogBuilder(this.requireActivity())
+        noResultsBuilder.apply {
             setTitle(title)
             setMessage(message)
             setCancelable(false)
@@ -455,6 +470,86 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
             show()
         }
         return
+    }
+
+    private fun loadRewardedAd() {
+        if (mRewardedAd == null) {
+            RewardedAd.load(
+                requireActivity(),
+                Constants.REWARDED_AD_UNIT_ID,
+                Constants.AD_REQUEST,
+                object : RewardedAdLoadCallback() {
+                    override fun onAdFailedToLoad(adError: LoadAdError) {
+                        super.onAdFailedToLoad(adError)
+                        mRewardedAd = null
+                    }
+
+                    override fun onAdLoaded(rewardedAd: RewardedAd) {
+                        super.onAdLoaded(rewardedAd)
+                        mRewardedAd = rewardedAd
+                    }
+                }
+            )
+        }
+    }
+
+    private fun showRewardedVideo() {
+        if (mRewardedAd != null) {
+            mRewardedAd?.fullScreenContentCallback =
+                object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        super.onAdDismissedFullScreenContent()
+                        mRewardedAd = null
+                        loadRewardedAd()
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        super.onAdFailedToShowFullScreenContent(adError)
+                        mRewardedAd = null
+                    }
+                }
+
+            mRewardedAd?.show(requireActivity()) {}
+        }
+    }
+
+    private fun loadInterstitialAd() {
+        InterstitialAd.load(
+            requireActivity(),
+            Constants.RECIPES_INTERSTITIAL_AD_UNIT_ID,
+            Constants.AD_REQUEST,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    super.onAdFailedToLoad(adError)
+                    mInterstitialAd = null
+                }
+
+                override fun onAdLoaded(interstitialAd: InterstitialAd) {
+                    super.onAdLoaded(interstitialAd)
+                    mInterstitialAd = interstitialAd
+                }
+            }
+        )
+    }
+
+    private fun showInterstitialAd() {
+        if (mInterstitialAd != null) {
+            mInterstitialAd?.fullScreenContentCallback =
+                object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        mInterstitialAd = null
+                        loadInterstitialAd()
+                    }
+
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        super.onAdFailedToShowFullScreenContent(adError)
+                        mInterstitialAd = null
+                    }
+                }
+            mInterstitialAd?.show(requireActivity())
+        } else {
+            loadInterstitialAd()
+        }
     }
 
     companion object {
