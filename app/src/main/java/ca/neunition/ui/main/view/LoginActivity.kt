@@ -79,29 +79,35 @@ class LoginActivity : AppCompatActivity() {
         val callbackManager = CallbackManager.Factory.create()
 
         facebookSignInButton.setOnClickListener {
-            LoginManager.getInstance().logInWithReadPermissions(this, callbackManager, arrayOf("email", "public_profile").toList())
-            LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
-                override fun onSuccess(result: LoginResult) {
-                    val credential = FacebookAuthProvider.getCredential(result.accessToken.token)
-                    signInWithFirebaseAuthCredential(credential, "Facebook")
-                }
+            LoginManager.getInstance().logInWithReadPermissions(
+                this,
+                callbackManager,
+                arrayOf("email", "public_profile").toList()
+            )
+            LoginManager.getInstance()
+                .registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                    override fun onSuccess(result: LoginResult) {
+                        val credential =
+                            FacebookAuthProvider.getCredential(result.accessToken.token)
+                        signInWithFirebaseAuthCredential(credential, "Facebook")
+                    }
 
-                override fun onCancel() {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Facebook Login Cancelled",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                    override fun onCancel() {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "Facebook Login Cancelled",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
-                override fun onError(error: FacebookException) {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "${error.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-            })
+                    override fun onError(error: FacebookException) {
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "${error.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                })
         }
         /****************************** Facebook Login ********************************************/
 
@@ -116,34 +122,36 @@ class LoginActivity : AppCompatActivity() {
                     .build()
             ).build()
 
-        val googleSignInLauncher = registerForActivityResult(StartIntentSenderForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                try {
-                    val googleCredential  = oneTapClient.getSignInCredentialFromIntent(result.data)
-                    val idToken = googleCredential.googleIdToken
-                    when {
-                        idToken != null -> {
-                            // Got an ID token from Google. Use it to authenticate with Firebase.
-                            val credential = GoogleAuthProvider.getCredential(idToken, null)
-                            signInWithFirebaseAuthCredential(credential, "Google")
+        val googleSignInLauncher =
+            registerForActivityResult(StartIntentSenderForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    try {
+                        val googleCredential =
+                            oneTapClient.getSignInCredentialFromIntent(result.data)
+                        val idToken = googleCredential.googleIdToken
+                        when {
+                            idToken != null -> {
+                                // Got an ID token from Google. Use it to authenticate with Firebase.
+                                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                                signInWithFirebaseAuthCredential(credential, "Google")
+                            }
+                            else -> {
+                                Toast.makeText(
+                                    this,
+                                    "Google sign in failed.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
                         }
-                        else -> {
-                            Toast.makeText(
-                                this,
-                                "Google sign in failed.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                    } catch (e: ApiException) {
+                        Toast.makeText(
+                            this,
+                            "Google sign in failed: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                } catch (e: ApiException) {
-                    Toast.makeText(
-                        this,
-                        "Google sign in failed: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
                 }
             }
-        }
 
         googleSignInButton.setOnClickListener {
             lifecycleScope.launch(Dispatchers.IO) {
@@ -182,16 +190,17 @@ class LoginActivity : AppCompatActivity() {
      */
     private fun signInWithFirebaseAuthCredential(credential: AuthCredential, provider: String) {
         // First observer for signing the user into Firebase
-        firebaseAuthViewModel.signInWithFirebase(credential, provider).observe(this) { authenticatedUser ->
-            if (authenticatedUser.isNew) {
-                // Second observer (optional) for creating a new user in the Realtime Database
-                firebaseAuthViewModel.createUser(authenticatedUser, provider).observe(this) {
+        firebaseAuthViewModel.signInWithFirebase(credential, provider)
+            .observe(this) { authenticatedUser ->
+                if (authenticatedUser.isNew) {
+                    // Second observer (optional) for creating a new user in the Realtime Database
+                    firebaseAuthViewModel.createUser(authenticatedUser, provider).observe(this) {
+                        goToMainActivity()
+                    }
+                } else {
                     goToMainActivity()
                 }
-            } else {
-                goToMainActivity()
             }
-        }
     }
 
     /**
@@ -230,8 +239,7 @@ class LoginActivity : AppCompatActivity() {
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             )
         }
-        this.movementMethod =
-            LinkMovementMethod.getInstance() // without LinkMovementMethod, link can not click
+        this.movementMethod = LinkMovementMethod.getInstance() // without LinkMovementMethod, link can not click
         this.setText(spannableString, TextView.BufferType.SPANNABLE)
     }
 }

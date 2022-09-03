@@ -49,8 +49,8 @@ class IngredientAdapter(
 
     override fun getItemCount() = ingredientsList.size
 
-    inner class IngredientViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-        View.OnClickListener {
+    inner class IngredientViewHolder(itemView: View) :
+        RecyclerView.ViewHolder(itemView), View.OnClickListener {
         val ingredientCalcTextView: AppCompatTextView =
             itemView.findViewById(R.id.calculation_of_ingredient_text_view)
         val deleteIngredientImageView: AppCompatImageView =

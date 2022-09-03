@@ -428,18 +428,14 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         when (measurement) {
             "mg", "milligram", "milligrams" -> newWeight = weight.divide(BigDecimal("1000"))
             "g", "gm", "gms", "gram", "grams" -> newWeight = weight
-            "kg", "kgs", "kilogram", "kilograms", "kilo", "kilos" -> newWeight =
-                weight.multiply(BigDecimal("1000"))
-            "tsp", "tsps", "teaspoon", "teaspoons" -> newWeight =
-                weight.multiply(BigDecimal("4.928921594"))
-            "tbsp", "tbsps", "tablespoon", "tablespoons" -> newWeight =
-                weight.multiply(BigDecimal("14.78676"))
+            "kg", "kgs", "kilogram", "kilograms", "kilo", "kilos" -> newWeight = weight.multiply(BigDecimal("1000"))
+            "tsp", "tsps", "teaspoon", "teaspoons" -> newWeight = weight.multiply(BigDecimal("4.928921594"))
+            "tbsp", "tbsps", "tablespoon", "tablespoons" -> newWeight = weight.multiply(BigDecimal("14.78676"))
             "cup", "cups" -> newWeight = weight.multiply(BigDecimal("236.58824"))
             "lb", "lbs", "pound", "pounds" -> newWeight = weight.multiply(BigDecimal("453.59237"))
             "oz", "ounce", "ounces" -> newWeight = weight.multiply(BigDecimal("28.34952"))
             "ml", "milliliter", "milliliters", "millilitre", "millilitres" -> newWeight = weight
-            "l", "liter", "liters", "litre", "litres" -> newWeight =
-                weight.multiply(BigDecimal("1000"))
+            "l", "liter", "liters", "litre", "litres" -> newWeight = weight.multiply(BigDecimal("1000"))
             "gal", "gallon", "gallons" -> newWeight = weight.multiply(BigDecimal("3785.411784"))
             "egg", "eggs" -> newWeight = weight.multiply(BigDecimal("50"))
             "clove", "cloves" -> newWeight = weight.multiply(BigDecimal("4"))

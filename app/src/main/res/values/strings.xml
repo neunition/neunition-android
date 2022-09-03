@@ -5,7 +5,6 @@
     <string name="facebook_app_id" translatable="false">1398258690687604</string>
     <string name="fb_login_protocol_scheme" translatable="false">fb1398258690687604</string>
     <string name="facebook_client_token" translatable="false">1fa952b0c8c7b2489f85296e0dc11a5f</string>
-    <string name="enter_meal_name">Enter your meal.</string>
     <string name="settings_icon">Settings</string>
     <string name="neunition_logo">Neunition Logo</string>
     <string name="today">Today: 0.0 kg of CO₂-eq</string>
@@ -31,14 +30,11 @@
     <string name="breakfast_notification">Good Morning! &#127774;</string>
     <string name="lunch_notification">It\'s Lunch Time! &#x1F37D;&#xFE0F;</string>
     <string name="dinner_notification">Dinner Is Ready! &#127747;</string>
-    <string name="image_of_the_recipe">Image of the recipe</string>
     <string name="progress_bar_recipe_description">A indeterminate progress bar for loading the recipe.</string>
     <string name="random_selection_of_recipes">Get a random selection of recipes</string>
-    <string name="add_recipe_ghg">Add the greenhouse gas emissions of this recipe to your current greenhouse gas emissions records.</string>
     <string name="add_ingredient_to_your_list">Add ingredient to your list</string>
     <string name="upload_image_ingredients">Upload an image with a list of ingredients to calculate total GHG emissions</string>
     <string name="add_emissions_ingredients_records">Add calculated GHG emissions for your ingredients to your GHG emissions records</string>
     <string name="clear_ingredients">Clear list of ingredients</string>
-    <string name="unit">Unit</string>
     <string name="admob_app_id">ca-app-pub-2714747137112577~8955566415</string>
 </resources>

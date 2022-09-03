@@ -25,10 +25,10 @@ class LoadingDialog(myActivity: Activity) {
         val builder = AlertDialog.Builder(activity)
 
         val inflater: LayoutInflater = activity.layoutInflater
-        builder.setView(inflater.inflate(R.layout.loading_dialog, null)).setCancelable(false);
+        builder.setView(inflater.inflate(R.layout.loading_dialog, null)).setCancelable(false)
 
         dialog = builder.create()
-        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT));
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
         dialog.show()
     }
 

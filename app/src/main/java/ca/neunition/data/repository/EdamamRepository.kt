@@ -66,7 +66,7 @@ object EdamamRepository {
                                 health,
                                 field
                             )
-                        } catch (e: Exception) {
+                        } catch (error: Exception) {
                             recipeSearchResults = RecipeSearchResults(null, null, null, null, null)
                         } finally {
                             withContext(Dispatchers.Main) {

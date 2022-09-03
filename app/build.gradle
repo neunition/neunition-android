@@ -28,13 +28,10 @@ android {
     }
 
     buildTypes {
-        getByName("release") {
-            minifyEnabled = false
-            shrinkResources = false
-            proguardFiles(
-                    getDefaultProguardFile('proguard-android-optimize.txt'),
-                    'proguard-rules.pro'
-            )
+        release {
+            minifyEnabled = true
+            shrinkResources = true
+            proguardFiles(getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro')
         }
     }
     buildFeatures {
@@ -101,4 +98,9 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+}
+
+ktlint {
+    android.set(true)
+    disabledRules.set(["no-wildcard-imports"])
 }

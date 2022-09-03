@@ -33,7 +33,7 @@
         android:contentDescription="@string/progress_bar_recipe_description"
         android:indeterminate="true"
         android:visibility="visible"
-        app:indicatorColor="@color/colorAccent"
+        app:indicatorColor="#8BC34A"
         app:layout_constraintBottom_toTopOf="@+id/recipe_webview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"

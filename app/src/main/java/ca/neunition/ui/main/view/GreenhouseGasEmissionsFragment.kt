@@ -86,7 +86,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         dailyScore,
                         "1.85",
                         "2.05"
-                    ), TextView.BufferType.SPANNABLE
+                    ),
+                    TextView.BufferType.SPANNABLE
                 )
 
                 weeklyScore = BigDecimal(user.weekly.toString())
@@ -97,7 +98,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         weeklyScore,
                         "12.95",
                         "14.35"
-                    ), TextView.BufferType.SPANNABLE
+                    ),
+                    TextView.BufferType.SPANNABLE
                 )
 
                 monthlyScore = BigDecimal(user.monthly.toString())
@@ -108,7 +110,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         monthlyScore,
                         "55.50",
                         "61.50"
-                    ), TextView.BufferType.SPANNABLE
+                    ),
+                    TextView.BufferType.SPANNABLE
                 )
 
                 yearlyScore = BigDecimal(user.yearly.toString())
@@ -119,7 +122,8 @@ class GreenhouseGasEmissionsFragment : Fragment() {
                         yearlyScore,
                         "675",
                         "750"
-                    ), TextView.BufferType.SPANNABLE
+                    ),
+                    TextView.BufferType.SPANNABLE
                 )
 
                 todayScoreTextView.visibility = View.VISIBLE
