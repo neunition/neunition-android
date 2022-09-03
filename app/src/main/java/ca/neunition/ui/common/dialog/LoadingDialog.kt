@@ -1,7 +1,7 @@
 /*
  * Copyright 2022 Neunition. All rights reserved.
  *
- * Show a loading overlay to the user.
+ * Show a loading spinner overlay to the user.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0

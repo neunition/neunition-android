@@ -109,7 +109,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         loadingDialog = LoadingDialog(requireActivity())
 
-        // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
@@ -261,35 +260,55 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         aboutUsPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(
+                    requireActivity(),
+                    Uri.parse("https://www.cnn.com/")
+                )
                 true
             }
 
         rateUsPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(
+                    requireActivity(),
+                    Uri.parse("https://www.cnn.com/")
+                )
                 true
             }
 
         privacyPolicyPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(
+                    requireActivity(),
+                    Uri.parse("https://www.cnn.com/")
+                )
                 true
             }
 
         termsAndConditionsPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(
+                    requireActivity(),
+                    Uri.parse("https://www.cnn.com/")
+                )
                 true
             }
 
         helpAndSupportPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(requireActivity(), Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(
+                    requireActivity(),
+                    Uri.parse("https://www.cnn.com/")
+                )
                 true
             }
     }
 
+    /**
+     * Main switch toggle to turn on/off notifications.
+     *
+     * @param switch Current state of the main switch toggle
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     private fun switchMainPrefIconTitle(switch: Boolean) {
         if (switch) {
@@ -318,6 +337,11 @@ class SettingsFragment : PreferenceFragmentCompat() {
         notificationsClass.switchMainPref(switch, breakfastSwitchOn, lunchSwitchOn, dinnerSwitchOn)
     }
 
+    /**
+     * Delete the user from Firebase entirely.
+     *
+     * @param credential A credential for the Firebase Authentication server to use to delete the user
+     */
     private fun deleteUser(credential: AuthCredential) {
         val user = Constants.FIREBASE_AUTH.currentUser!!
 

@@ -20,15 +20,15 @@ import kotlinx.coroutines.tasks.await
 
 class FirebaseAuthRepository(private val application: Application) {
     private val scope = CoroutineScope(Dispatchers.IO)
-    
+
     /**
      * Proceed with the Firebase authentication process.
      *
-     * @param credential a credential for the Firebase Authentication server to use to authenticate the user
-     * @param provider the sign-in provider the user selected
+     * @param credential A credential for the Firebase Authentication server to use to authenticate the user
+     * @param provider The sign-in provider the user selected
      *
-     * @return a observable User object to determine whether to save the User into the Realtime
-     * Database or redirect them to MainActivity
+     * @return Observable User object to determine whether to save the User into the Realtime
+     * Database or redirect them to [MainActivity].
      */
     fun firebaseAuthSignIn(
         credential: AuthCredential,
@@ -86,10 +86,10 @@ class FirebaseAuthRepository(private val application: Application) {
     /**
      * Add the Firebase user to the Realtime Database if they don't already exist.
      *
-     * @param authenticatedUser that data for creating a new user in the Realtime Database
-     * @param provider the sign-in provider the user selected
+     * @param authenticatedUser Data for creating a new user in the Realtime Database
+     * @param provider The sign-in provider the user selected
      *
-     * @return a observable User object that's created only if the User didn't exist before
+     * @return Observable User object that's created only if the User didn't exist before.
      */
     fun createUserInDatabaseIfNotExists(
         authenticatedUser: User,
@@ -120,6 +120,9 @@ class FirebaseAuthRepository(private val application: Application) {
         return newUserMutableLiveData
     }
 
+    /**
+     * Cancel all Firebase Authentication coroutine scopes.
+     */
     fun cancelCoroutines() {
         scope.cancel()
     }

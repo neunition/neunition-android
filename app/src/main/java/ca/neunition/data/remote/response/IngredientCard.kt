@@ -11,4 +11,8 @@ package ca.neunition.data.remote.response
 
 import java.math.BigDecimal
 
-data class IngredientCard(val ingredientText: String, val weight: BigDecimal, val italicizeText: Boolean)
+data class IngredientCard(
+    val ingredientText: String,
+    val weight: BigDecimal,
+    val italicizeText: Boolean
+)

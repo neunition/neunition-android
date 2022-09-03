@@ -28,6 +28,7 @@ import androidx.core.content.res.ResourcesCompat
 import ca.neunition.R
 import java.math.BigDecimal
 
+// Factory to be used by TextViews to make them spannable.
 val spannableFactory = object : Spannable.Factory() {
     override fun newSpannable(source: CharSequence?): Spannable {
         return source as Spannable
@@ -73,6 +74,13 @@ fun isOnline(context: Context): Boolean {
     }
 }
 
+/**
+ * Create a toast to show any errors to the user.
+ *
+ * @param context The context of the app
+ * @param noConnectionMessage Message to show if the user is not connected to a network
+ * @param otherErrorMessage Message to show the user for all other errors
+ */
 fun toastErrorMessages(context: Context, noConnectionMessage: String, otherErrorMessage: String) {
     if (!isOnline(context)) {
         Toast.makeText(context, noConnectionMessage, Toast.LENGTH_LONG).show()
@@ -96,20 +104,21 @@ fun View.hideKeyboard(): Boolean {
 
 /**
  * Change color of the greenhouse gas emissions score based on the value received.
- * Color coding the scores: red, yellow, green. Yearly CO2: 2 tones (30% of that is food)
  *
- * @param score the GHG emissions
+ * @param context The context of the activity/fragment
+ * @param period The time period (daily, weekly, monthly, yearly)
+ * @param score The GHG emissions for the associated time period
  *
  * @return a string with the new color for the text
  */
-fun scoreColourChange(
+fun currentScoreColourChange(
     context: Context,
     period: String,
     score: BigDecimal,
     greenVal: String,
     yellowVal: String
 ): SpannableString {
-    val scoreSpannable = SpannableString("$period $score kg of CO₂-eq").apply {
+    val scoreSpannable = SpannableString("$period: $score kg of CO₂-eq").apply {
         setSpan(StyleSpan(Typeface.BOLD), 0, period.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
     }
 

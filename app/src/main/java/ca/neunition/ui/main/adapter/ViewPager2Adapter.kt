@@ -17,15 +17,11 @@ import ca.neunition.ui.main.view.IngredientsEmissionsFragment
 import ca.neunition.ui.main.view.RecipesFragment
 
 class ViewPager2Adapter(fa: FragmentActivity) : FragmentStateAdapter(fa) {
-    override fun getItemCount() = NUM_TABS
+    override fun getItemCount() = 3
 
     override fun createFragment(position: Int): Fragment = when (position) {
-            0 -> GreenhouseGasEmissionsFragment()
-            1 -> RecipesFragment()
-            else -> IngredientsEmissionsFragment()
-    }
-
-    companion object {
-        private const val NUM_TABS = 3
+        0 -> GreenhouseGasEmissionsFragment()
+        1 -> RecipesFragment()
+        else -> IngredientsEmissionsFragment()
     }
 }

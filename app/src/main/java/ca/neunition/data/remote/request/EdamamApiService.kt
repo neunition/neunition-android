@@ -15,7 +15,7 @@ import retrofit2.http.Query
 
 interface EdamamApiService {
     /**
-     * GET request to Edamam's "api/recipes/v2/" endpoint
+     * GET request to Edamam's "api/recipes/v2/" endpoint.
      *
      * @param type Type of recipes to search for
      * @param beta Allow beta features in the request and response
@@ -27,7 +27,7 @@ interface EdamamApiService {
      * @param health Health labels to select
      * @param field Recipe fields to be included in the API response
      *
-     * @return The returned JSON object from the API call
+     * @return The returned JSON response from the API call.
      */
     @GET("api/recipes/v2/")
     suspend fun getEdamamRecipes(

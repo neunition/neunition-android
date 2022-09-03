@@ -139,15 +139,18 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         ingredientsRecyclerView.apply {
             adapter = IngredientAdapter(ingredientsEmissionsList, this@IngredientsEmissionsFragment)
             setHasFixedSize(true)
-            layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.ingredients_recycler_view_animation)
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(
+                requireActivity(),
+                R.anim.ingredients_recycler_view_animation
+            )
         }
 
         currentEmissionsTextView.apply {
             setSpannableFactory(spannableFactory)
             setText(
-                scoreColourChange(
+                currentScoreColourChange(
                     requireActivity(),
-                    "Current GHG Emissions:",
+                    "Current GHG Emissions",
                     currentEmissionsScore,
                     "1.85",
                     "2.05"
@@ -206,12 +209,13 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
      * @param position the specific ingredient to be removed
      */
     override fun onDeleteClick(position: Int) {
-        currentEmissionsScore = currentEmissionsScore.subtract(ingredientsEmissionsList[position].weight)
+        currentEmissionsScore =
+            currentEmissionsScore.subtract(ingredientsEmissionsList[position].weight)
         currentEmissionsScore = currentEmissionsScore.setScale(2, RoundingMode.HALF_UP)
         currentEmissionsTextView.setText(
-            scoreColourChange(
+            currentScoreColourChange(
                 requireActivity(),
-                "Current GHG Emissions:",
+                "Current GHG Emissions",
                 currentEmissionsScore,
                 "1.85",
                 "2.05"
@@ -250,6 +254,12 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         autoCompleteWeights.text = null
     }
 
+    /**
+     * Extract the text from the image and see if it has the required info to calculate the GHG
+     * emissions.
+     *
+     * @param visionText The Text object that contains the full text recognized in the image
+     */
     private fun processTextFromImage(visionText: Text) {
         for (block in visionText.textBlocks) {
             for (line in block.lines) {
@@ -298,6 +308,13 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         }
     }
 
+    /**
+     * Convert a fraction into a decimal.
+     *
+     * @param ratio The fraction
+     *
+     * @return The decimal converted from the given fraction
+     */
     private fun convertFractionToDecimal(ratio: String): Double {
         return if (ratio.contains("/")) {
             val rat: Array<String> = ratio.split("/").toTypedArray()
@@ -307,7 +324,18 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         }
     }
 
-    private fun calculateEmissionsForIngredient(ingredient: String, ingredientWeight: String, selectedWeight: String) {
+    /**
+     * Calculate the GHG emissions for an individual ingredient.
+     *
+     * @param ingredient The ingredient to be calculated
+     * @param ingredientWeight The weight of the ingredient
+     * @param selectedWeight The unit for the weight
+     */
+    private fun calculateEmissionsForIngredient(
+        ingredient: String,
+        ingredientWeight: String,
+        selectedWeight: String
+    ) {
         var score = BigDecimal("0.00")
         var ingredientExists = false
 
@@ -321,19 +349,25 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             for (word in keyWords.indices) {
                 if (keyWords[word] in Constants.TWO_WORD_INGREDIENTS && word + 1 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]}" in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()).multiply(ingredientInGrams)
+                        BigDecimal(
+                            Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]}"].toString()
+                        ).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
                     break
                 } else if (keyWords[word] in Constants.THREE_WORD_INGREDIENTS && word + 2 < keyWords.size && "${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}" in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()).multiply(ingredientInGrams)
+                        BigDecimal(
+                            Constants.INGREDIENTS["${keyWords[word]} ${keyWords[word + 1]} ${keyWords[word + 2]}"].toString()
+                        ).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
                     break
                 } else if (keyWords[word] in Constants.INGREDIENTS) {
                     score = score.add(
-                        BigDecimal(Constants.INGREDIENTS[keyWords[word]].toString()).multiply(ingredientInGrams)
+                        BigDecimal(
+                            Constants.INGREDIENTS[keyWords[word]].toString()
+                        ).multiply(ingredientInGrams)
                     )
                     ingredientExists = true
                     break
@@ -384,24 +418,28 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
     /**
      * Convert the user's ingredient weight to grams.
      *
-     * @param weight the weight of the ingredient
-     * @param measurement the weight type of the ingredient
+     * @param weight Weight of the ingredient
+     * @param measurement Weight type of the ingredient
      *
-     * @return the new weight that is in grams
+     * @return New weight that is in grams.
      */
     private fun gramsConverter(weight: BigDecimal, measurement: String): BigDecimal {
         var newWeight = BigDecimal("0.00")
         when (measurement) {
             "mg", "milligram", "milligrams" -> newWeight = weight.divide(BigDecimal("1000"))
             "g", "gm", "gms", "gram", "grams" -> newWeight = weight
-            "kg", "kgs", "kilogram", "kilograms", "kilo", "kilos" -> newWeight = weight.multiply(BigDecimal("1000"))
-            "tsp", "tsps", "teaspoon", "teaspoons" -> newWeight = weight.multiply(BigDecimal("4.928921594"))
-            "tbsp", "tbsps", "tablespoon", "tablespoons" -> newWeight = weight.multiply(BigDecimal("14.78676"))
+            "kg", "kgs", "kilogram", "kilograms", "kilo", "kilos" -> newWeight =
+                weight.multiply(BigDecimal("1000"))
+            "tsp", "tsps", "teaspoon", "teaspoons" -> newWeight =
+                weight.multiply(BigDecimal("4.928921594"))
+            "tbsp", "tbsps", "tablespoon", "tablespoons" -> newWeight =
+                weight.multiply(BigDecimal("14.78676"))
             "cup", "cups" -> newWeight = weight.multiply(BigDecimal("236.58824"))
             "lb", "lbs", "pound", "pounds" -> newWeight = weight.multiply(BigDecimal("453.59237"))
             "oz", "ounce", "ounces" -> newWeight = weight.multiply(BigDecimal("28.34952"))
             "ml", "milliliter", "milliliters", "millilitre", "millilitres" -> newWeight = weight
-            "l", "liter", "liters", "litre", "litres" -> newWeight = weight.multiply(BigDecimal("1000"))
+            "l", "liter", "liters", "litre", "litres" -> newWeight =
+                weight.multiply(BigDecimal("1000"))
             "gal", "gallon", "gallons" -> newWeight = weight.multiply(BigDecimal("3785.411784"))
             "egg", "eggs" -> newWeight = weight.multiply(BigDecimal("50"))
             "clove", "cloves" -> newWeight = weight.multiply(BigDecimal("4"))
@@ -409,12 +447,23 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         return newWeight
     }
 
-    private fun addIngredientGHGCard(noIngrMsg: String, scoreToDisplay: BigDecimal, italicizeText: Boolean) = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-        currentEmissionsScore = currentEmissionsScore.add(scoreToDisplay.setScale(2, RoundingMode.HALF_UP))
+    /**
+     * Add the card with the GHG emissions for a ingredient to the list.
+     *
+     * @param ingredient The ingredient that was calculated
+     * @param score The GHG emissions associated with the ingredient
+     * @param italicizeText Italicize the text or not
+     */
+    private fun addIngredientGHGCard(
+        ingredient: String,
+        score: BigDecimal,
+        italicizeText: Boolean
+    ) = viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+        currentEmissionsScore = currentEmissionsScore.add(score.setScale(2, RoundingMode.HALF_UP))
         currentEmissionsTextView.setText(
-            scoreColourChange(
+            currentScoreColourChange(
                 requireActivity(),
-                "Current GHG Emissions:",
+                "Current GHG Emissions",
                 currentEmissionsScore,
                 "1.85",
                 "2.05"
@@ -422,7 +471,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             TextView.BufferType.SPANNABLE
         )
 
-        val item = IngredientCard(noIngrMsg, scoreToDisplay, italicizeText)
+        val item = IngredientCard(ingredient, score, italicizeText)
         ingredientsEmissionsList.add(item)
         ingredientsRecyclerView.apply {
             adapter?.notifyItemInserted(ingredientsEmissionsList.size - 1)
@@ -431,7 +480,7 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
     }
 
     /**
-     * Add the user's ingredients' emissions to their daily, weekly, and monthly scores.
+     * Add the user's ingredients' emissions to their daily, weekly, monthly, and yearly scores.
      */
     private fun updateUserEmissions() {
         if (!isOnline(requireActivity().applicationContext)) {
@@ -463,9 +512,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         ingredientsRecyclerView.adapter?.notifyDataSetChanged()
         currentEmissionsScore = BigDecimal("0.00")
         currentEmissionsTextView.setText(
-            scoreColourChange(
+            currentScoreColourChange(
                 requireActivity(),
-                "Current GHG Emissions:",
+                "Current GHG Emissions",
                 currentEmissionsScore,
                 "1.85",
                 "2.05"
@@ -474,6 +523,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         )
     }
 
+    /**
+     * Load a interstitial ad into the app.
+     */
     private fun loadInterstitialAd() {
         InterstitialAd.load(
             requireActivity(),
@@ -493,6 +545,9 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
         )
     }
 
+    /**
+     * Show a interstitial ad to the user.
+     */
     private fun showInterstitialAd() {
         if (mInterstitialAd != null) {
             mInterstitialAd?.fullScreenContentCallback =
@@ -603,6 +658,8 @@ class IngredientsEmissionsFragment : Fragment(), IngredientAdapter.OnClickListen
             )
         }
 
-        private val recognizer: TextRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+        private val recognizer: TextRecognizer by lazy {
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        }
     }
 }

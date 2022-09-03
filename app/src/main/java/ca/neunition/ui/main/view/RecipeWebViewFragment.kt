@@ -34,7 +34,6 @@ import org.adblockplus.libadblockplus.android.settings.AdblockHelper
 import org.adblockplus.libadblockplus.android.settings.AdblockSettingsStorage
 import org.adblockplus.libadblockplus.android.webview.AdblockWebView
 
-
 @SuppressLint("SourceLockedOrientationActivity")
 class RecipeWebViewFragment(
     private val recipeTitle: String,
@@ -208,6 +207,7 @@ class RecipeWebViewFragment(
         }
     }
 
+    // Determine the screen width (less decorations) to use for the ad width.
     private fun adAdapterSize(): AdSize {
         val display = requireActivity().windowManager.defaultDisplay
         val outMetrics = DisplayMetrics()
@@ -224,6 +224,9 @@ class RecipeWebViewFragment(
         return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(requireActivity(), adWidth)
     }
 
+    /**
+     * Load and show a adaptive banner ad.
+     */
     private fun loadAdaptiveBanner() {
         adaptiveBannerAdView.adUnitId = Constants.BANNER_AD_UNIT_ID
         adaptiveBannerAdView.setAdSize(adAdapterSize())

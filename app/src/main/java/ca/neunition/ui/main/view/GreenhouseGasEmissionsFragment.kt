@@ -21,7 +21,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import ca.neunition.R
 import ca.neunition.ui.main.viewmodel.FirebaseDatabaseViewModel
-import ca.neunition.util.scoreColourChange
+import ca.neunition.util.currentScoreColourChange
 import ca.neunition.util.spannableFactory
 import java.math.BigDecimal
 
@@ -58,20 +58,31 @@ class GreenhouseGasEmissionsFragment : Fragment() {
         weekScoreTextView.setSpannableFactory(spannableFactory)
         monthScoreTextView.setSpannableFactory(spannableFactory)
         yearScoreTextView.setSpannableFactory(spannableFactory)
-        TextViewCompat.setAutoSizeTextTypeWithDefaults(todayScoreTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
-        TextViewCompat.setAutoSizeTextTypeWithDefaults(weekScoreTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
-        TextViewCompat.setAutoSizeTextTypeWithDefaults(monthScoreTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
-        TextViewCompat.setAutoSizeTextTypeWithDefaults(yearScoreTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(
+            todayScoreTextView,
+            TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM
+        )
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(
+            weekScoreTextView,
+            TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM
+        )
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(
+            monthScoreTextView,
+            TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM
+        )
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(
+            yearScoreTextView,
+            TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM
+        )
 
-        // Get the user's info from the Firebase Realtime Database
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(viewLifecycleOwner) { user ->
             if (user != null) {
                 dailyScore = BigDecimal(user.daily.toString())
                 todayScoreTextView.setText(
-                    scoreColourChange(
+                    currentScoreColourChange(
                         requireActivity(),
-                        "Today:",
+                        "Today",
                         dailyScore,
                         "1.85",
                         "2.05"
@@ -80,9 +91,9 @@ class GreenhouseGasEmissionsFragment : Fragment() {
 
                 weeklyScore = BigDecimal(user.weekly.toString())
                 weekScoreTextView.setText(
-                    scoreColourChange(
+                    currentScoreColourChange(
                         requireActivity(),
-                        "This Week:",
+                        "This Week",
                         weeklyScore,
                         "12.95",
                         "14.35"
@@ -91,9 +102,9 @@ class GreenhouseGasEmissionsFragment : Fragment() {
 
                 monthlyScore = BigDecimal(user.monthly.toString())
                 monthScoreTextView.setText(
-                    scoreColourChange(
+                    currentScoreColourChange(
                         requireActivity(),
-                        "This Month:",
+                        "This Month",
                         monthlyScore,
                         "55.50",
                         "61.50"
@@ -102,9 +113,9 @@ class GreenhouseGasEmissionsFragment : Fragment() {
 
                 yearlyScore = BigDecimal(user.yearly.toString())
                 yearScoreTextView.setText(
-                    scoreColourChange(
+                    currentScoreColourChange(
                         requireActivity(),
-                        "This Year:",
+                        "This Year",
                         yearlyScore,
                         "675",
                         "750"

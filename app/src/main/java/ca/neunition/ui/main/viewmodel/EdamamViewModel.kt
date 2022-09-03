@@ -23,7 +23,8 @@ class EdamamViewModel : ViewModel() {
     private var _diet: Array<String>? = null
     private var _health: Array<String>? = null
 
-    // Observe the MutaleLiveData object for any changes. Map it from a String to a LiveData<RecipeSearchResults> object
+    // Observe the MutaleLiveData object for any changes. Map it from a String to a
+    // LiveData<RecipeSearchResults> object.
     val recipeSearchResults: LiveData<RecipeSearchResults> = Transformations.switchMap(_q) {
         EdamamRepository.getRecipeSearchResults(
             "public",
@@ -56,7 +57,7 @@ class EdamamViewModel : ViewModel() {
     }
 
     /**
-     * Cancel any jobs running from the repository.
+     * Cancel any jobs running from [EdamamRepository].
      */
     fun cancelJobs() {
         EdamamRepository.cancelJobs()

@@ -29,7 +29,7 @@ object RetrofitBuilder {
             .build()
     }
 
-    // OkHttp3 client for network timeouts
+    // OkHttp3 client for network timeouts.
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)

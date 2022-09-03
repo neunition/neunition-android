@@ -21,7 +21,7 @@ object EdamamRepository {
     private lateinit var recipeSearchResults: RecipeSearchResults
 
     /**
-     * Call this method to make the API call
+     * Call this method to make the API call.
      *
      * @param type Type of recipes to search for
      * @param beta Allow beta features in the request and response
@@ -33,7 +33,7 @@ object EdamamRepository {
      * @param health Health labels to select
      * @param field Recipe fields to be included in the API response
      *
-     * @return LiveData object of the JSON data returned from the API call
+     * @return LiveData object of the JSON response returned from the API call.
      */
     fun getRecipeSearchResults(
         type: String,
@@ -51,8 +51,8 @@ object EdamamRepository {
             override fun onActive() {
                 super.onActive()
                 job?.let { theJob ->
-                    /* Create a unique coroutine on the background thread that's referencing this
-                     * job. Cancel the job and it will cancel what's inside this CoroutineScope. */
+                    // Create a unique coroutine on the background thread that's referencing this
+                    // job. Cancel the job and it will cancel what's inside this CoroutineScope.
                     CoroutineScope(Dispatchers.IO + theJob).launch {
                         try {
                             recipeSearchResults = RetrofitBuilder.edamamApiService.getEdamamRecipes(
@@ -81,9 +81,9 @@ object EdamamRepository {
     }
 
     /**
-     * If the fragment is destroyed, cancel the job in the ViewModel, then cancel in Repository and
-     * everything will get cancelled. This will clean up resources and prevent network requests
-     * pending in the background.
+     * If the fragment is destroyed, cancel the job in the ViewModel, then cancel it in the Repository
+     * and everything else will get cancelled. This will clean up resources and prevent network
+     * requests pending in the background.
      */
     fun cancelJobs() {
         job?.cancel()

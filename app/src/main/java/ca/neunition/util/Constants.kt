@@ -47,7 +47,7 @@ object Constants {
             .skipMemoryCache(true)
     }
 
-    // CO2 scores for each ingredient per gram
+    // GHG emissions per gram of food product
     val INGREDIENTS: HashMap<String, Double> by lazy {
         hashMapOf(
             "beef" to 0.09948,

@@ -32,6 +32,9 @@ class SplashViewModel(application: Application) : AndroidViewModel(application) 
         return splashRepository.addUserToLiveData()
     }
 
+    /**
+     * Cancel all Firebase Authentication coroutine scopes.
+     */
     fun cancelCoroutines() {
         splashRepository.cancelCoroutines()
     }

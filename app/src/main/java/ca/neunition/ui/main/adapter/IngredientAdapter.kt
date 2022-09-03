@@ -77,6 +77,14 @@ class IngredientAdapter(
         fun onDeleteClick(position: Int)
     }
 
+    /**
+     * The text to place inside of a card that will be added to the ingredients' emissions list.
+     *
+     * @param ingredientText The raw text
+     * @param italicText Italicize the text or not
+     *
+     * @return The text that has been correctly formatted to be displayed in the card.
+     */
     private fun ingredientCardText(ingredientText: String, italicText: Boolean): SpannableString {
         val ingredientTextSpannable = SpannableString(ingredientText)
 

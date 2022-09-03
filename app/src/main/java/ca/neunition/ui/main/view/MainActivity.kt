@@ -107,7 +107,12 @@ class MainActivity : AppCompatActivity() {
             val breakfastSwitchOn = sharedPreferences.getBoolean("breakfast_notifications_switch_preference", true)
             val lunchSwitchOn = sharedPreferences.getBoolean("lunch_notifications_switch_preference", true)
             val dinnerSwitchOn = sharedPreferences.getBoolean("dinner_notifications_switch_preference", true)
-            notificationsClass.switchMainPref(mainNotificationSwitchOn, breakfastSwitchOn, lunchSwitchOn, dinnerSwitchOn)
+            notificationsClass.switchMainPref(
+                mainNotificationSwitchOn,
+                breakfastSwitchOn,
+                lunchSwitchOn,
+                dinnerSwitchOn
+            )
             notificationsClass.createNotificationChannel()
         }
 
@@ -134,11 +139,12 @@ class MainActivity : AppCompatActivity() {
             PlayIntegrityAppCheckProviderFactory.getInstance()
         )
 
-
         fullNameTextView.setSpannableFactory(spannableFactory)
-        TextViewCompat.setAutoSizeTextTypeWithDefaults(fullNameTextView, TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM)
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(
+            fullNameTextView,
+            TextViewCompat.AUTO_SIZE_TEXT_TYPE_UNIFORM
+        )
 
-        // Setup the app bar so the user can swipe or click on the tabs to go to different screens
         val pageAdapter = ViewPager2Adapter(this)
         viewPager2.apply {
             adapter = pageAdapter
@@ -169,7 +175,6 @@ class MainActivity : AppCompatActivity() {
             start()
         }
 
-        // Check to see if the user is connected to the network
         if (!isOnline(applicationContext)) {
             progressBar.visibility = View.INVISIBLE
             noInternet.visibility = View.VISIBLE
@@ -178,7 +183,6 @@ class MainActivity : AppCompatActivity() {
             noInternet.visibility = View.INVISIBLE
         }
 
-        // Obtain a new or prior instance of FirebaseDatabaseViewModel according to the lifecycle component from the ViewModelProvider class
         firebaseDatabaseViewModel = ViewModelProvider(this)[FirebaseDatabaseViewModel::class.java]
         firebaseDatabaseViewModel.firebaseUserData().observe(this) { user ->
             if (user != null) {
@@ -198,7 +202,7 @@ class MainActivity : AppCompatActivity() {
                         .asBitmap()
                         .load(currentProfileImageUrl)
                         .placeholder(profilePictureProgress)
-                        .transition(withCrossFade(FACTORY))
+                        .transition(withCrossFade(CROSS_FADE_FACTORY))
                         .apply(Constants.REQUEST_OPTIONS)
                         .into(profileImageView)
                 }
@@ -215,35 +219,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Open the settings screen
         settingsImageView.setOnClickListener {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
 
-        val profileImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
-            if (res.resultCode == Activity.RESULT_OK && res.data != null) {
-                val profileImageUri = res.data!!.data!!
-                val fileSize = getImageSize(this, profileImageUri)
-
-                if (fileSize > 2.0) {
-                    val builder = MaterialAlertDialogBuilder(this).apply {
-                        setTitle("Image Too Large")
-                        setMessage("The image you have selected exceeds the 2 MB limit.")
-                        setCancelable(false)
-                        setPositiveButton("ok") { dialog, _ ->
-                            dialog.dismiss()
+        val profileImageLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
+                if (res.resultCode == Activity.RESULT_OK && res.data != null) {
+                    val profileImageUri = res.data!!.data!!
+                    val fileSize = getImageSize(this, profileImageUri)
+                    if (fileSize > 2.0) {
+                        val builder = MaterialAlertDialogBuilder(this).apply {
+                            setTitle("Image Too Large")
+                            setMessage("The image you have selected exceeds the 2 MB limit.")
+                            setCancelable(false)
+                            setPositiveButton("ok") { dialog, _ ->
+                                dialog.dismiss()
+                            }
                         }
+                        builder.create().show()
+                    } else {
+                        loadingDialog.startDialog()
+                        uploadProfileImage(profileImageUri)
                     }
-                    builder.create().show()
-                } else {
-                    loadingDialog.startDialog()
-                    uploadProfileImage(profileImageUri)
                 }
             }
-        }
 
-        // Allow the user to change their profile image
         profileImageView.setOnClickListener {
             val builder = MaterialAlertDialogBuilder(this)
             builder.setTitle("Set Profile Photo")
@@ -254,8 +256,9 @@ class MainActivity : AppCompatActivity() {
                     profileImageLauncher.launch(intent)
                 }
                 .setNegativeButton("remove") { _, _ ->
-                    Firebase.storage.getReference("/profile_pictures/${Constants.FIREBASE_AUTH.currentUser!!.uid}")
-                        .delete()
+                    Firebase.storage.getReference(
+                        "/profile_pictures/${Constants.FIREBASE_AUTH.currentUser!!.uid}"
+                    ).delete()
                     firebaseDatabaseViewModel.updateChildValue("profileImageUrl", "")
                     profileImageView.setImageResource(R.drawable.default_profile)
                 }
@@ -281,29 +284,6 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         adaptiveBannerAdView.destroy()
         super.onDestroy()
-    }
-
-    private val adAdapterSize: AdSize
-        get() {
-            val display = windowManager.defaultDisplay
-            val outMetrics = DisplayMetrics()
-            display.getMetrics(outMetrics)
-
-            val density = outMetrics.density
-
-            var adWidthPixels = adViewContainer.width.toFloat()
-            if (adWidthPixels == 0f) {
-                adWidthPixels = outMetrics.widthPixels.toFloat()
-            }
-
-            val adWidth = (adWidthPixels / density).toInt()
-            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
-        }
-
-    private fun loadAdaptiveBanner() {
-        adaptiveBannerAdView.adUnitId = Constants.BANNER_AD_UNIT_ID
-        adaptiveBannerAdView.setAdSize(adAdapterSize)
-        adaptiveBannerAdView.loadAd(Constants.AD_REQUEST)
     }
 
     /**
@@ -354,9 +334,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Determine the screen width (less decorations) to use for the ad width.
+    private val adAdapterSize: AdSize
+        get() {
+            val display = windowManager.defaultDisplay
+            val outMetrics = DisplayMetrics()
+            display.getMetrics(outMetrics)
+
+            val density = outMetrics.density
+
+            var adWidthPixels = adViewContainer.width.toFloat()
+            if (adWidthPixels == 0f) {
+                adWidthPixels = outMetrics.widthPixels.toFloat()
+            }
+
+            val adWidth = (adWidthPixels / density).toInt()
+            return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidth)
+        }
+
+    /**
+     * Load and show a adaptive banner ad.
+     */
+    private fun loadAdaptiveBanner() {
+        adaptiveBannerAdView.adUnitId = Constants.BANNER_AD_UNIT_ID
+        adaptiveBannerAdView.setAdSize(adAdapterSize)
+        adaptiveBannerAdView.loadAd(Constants.AD_REQUEST)
+    }
+
     companion object {
         private val FIREBASE_STORAGE: FirebaseStorage by lazy { Firebase.storage }
-        private val FACTORY: DrawableCrossFadeFactory by lazy {
+        private val CROSS_FADE_FACTORY: DrawableCrossFadeFactory by lazy {
             DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
         }
     }

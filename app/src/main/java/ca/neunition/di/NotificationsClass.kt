@@ -2,7 +2,7 @@
  * Copyright 2022 Neunition. All rights reserved.
  *
  * This class will be used to determine whether to send breakfast, lunch, and dinner notifications
- * at certain times.
+ * to the user at certain times.
  *
  * @author Nelaven Subaskaran
  * @since 1.0.0
@@ -45,6 +45,14 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
     private var dinnerAlarmMgr: AlarmManager? = null
     private lateinit var dinnerAlarmIntent: PendingIntent
 
+    /**
+     * Activate notifications.
+     *
+     * @param switch The main toggle switch in [SettingsFragment] for turning on/off notifications
+     * @param breakfastSwitchOn Turn on or off Breakfast Reminder notification
+     * @param lunchSwitchOn Turn on or off Lunch Reminder notification
+     * @param dinnerSwitchOn Turn on or off Dinner Reminder notification
+     */
     fun switchMainPref(
         switch: Boolean,
         breakfastSwitchOn: Boolean,
@@ -64,7 +72,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
 
     /**
      * Create the NotificationChannel, but only on API 26+ because the NotificationChannel class is
-     * new and not in the support library
+     * new and not in the support library.
      */
     fun createNotificationChannel() {
         val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -92,6 +100,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         notificationManager.createNotificationChannel(dinnerChannel)
     }
 
+    /**
+     * Turn on and send Breakfast Reminder notification.
+     */
     private fun breakfastAlarm() {
         breakfastCalendar = Calendar.getInstance()
         breakfastCalendar[Calendar.HOUR_OF_DAY] = 8
@@ -124,6 +135,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         )
     }
 
+    /**
+     * Turn on and send Lunch Reminder notification.
+     */
     private fun lunchAlarm() {
         lunchCalendar = Calendar.getInstance()
         lunchCalendar[Calendar.HOUR_OF_DAY] = 12
@@ -156,6 +170,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         )
     }
 
+    /**
+     * Turn on and send Dinner Reminder notification.
+     */
     private fun dinnerAlarm() {
         dinnerCalendar = Calendar.getInstance()
         dinnerCalendar[Calendar.HOUR_OF_DAY] = 18
@@ -188,21 +205,33 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         )
     }
 
+    /**
+     * Turn off Breakfast Reminder notification.
+     */
     fun breakfastCancelAlarm() {
         breakfastAlarmMgr?.cancel(breakfastAlarmIntent)
         notificationManager.cancel(Constants.BREAKFAST_NOTIFICATION_ID)
     }
 
+    /**
+     * Turn off Lunch Reminder notification.
+     */
     fun lunchCancelAlarm() {
         lunchAlarmMgr?.cancel(lunchAlarmIntent)
         notificationManager.cancel(Constants.LUNCH_NOTIFICATION_ID)
     }
 
+    /**
+     * Turn off Dinner Reminder notification.
+     */
     fun dinnerCancelAlarm() {
         dinnerAlarmMgr?.cancel(dinnerAlarmIntent)
         notificationManager.cancel(Constants.DINNER_NOTIFICATION_ID)
     }
 
+    /**
+     * Determine whether to turn on or off the Breakfast Reminder notification.
+     */
     fun breakfastSwitchPref(switch: Boolean) {
         if (switch) {
             breakfastAlarm()
@@ -211,6 +240,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         }
     }
 
+    /**
+     * Determine whether to turn on or off the Lunch Reminder notification.
+     */
     fun lunchSwitchPref(switch: Boolean) {
         if (switch) {
             lunchAlarm()
@@ -219,6 +251,9 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
         }
     }
 
+    /**
+     * Determine whether to turn on or off the Dinner Reminder notification.
+     */
     fun dinnerSwitchPref(switch: Boolean) {
         if (switch) {
             dinnerAlarm()

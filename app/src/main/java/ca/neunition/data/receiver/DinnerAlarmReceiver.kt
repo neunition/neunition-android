@@ -29,12 +29,7 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            i,
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent = PendingIntent.getActivity(context, 0, i, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(context, Constants.DINNER_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_icon)
@@ -47,7 +42,6 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
-            // notificationId is a unique int for each notification that you must define
             notify(Constants.DINNER_NOTIFICATION_ID, builder.build())
         }
     }

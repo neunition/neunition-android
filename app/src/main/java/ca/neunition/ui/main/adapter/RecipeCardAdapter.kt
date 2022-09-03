@@ -63,21 +63,18 @@ class RecipeCardAdapter(
                 TextView.BufferType.SPANNABLE
             )
 
-            recipeAddEmissionsButton.contentDescription = "Add the the greenhouse gas emissions from ${currentRecipe.recipeTitle} to your current GHG records"
+            recipeAddEmissionsButton.contentDescription =
+                "Add the the greenhouse gas emissions from ${currentRecipe.recipeTitle} to your current GHG records"
         }
     }
 
     override fun getItemCount() = recipesList.size
 
-    inner class RecipeCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-        View.OnClickListener {
-        val recipeImageView: AppCompatImageView =
-            itemView.findViewById(R.id.recipe_picture_image_view)
+    inner class RecipeCardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener {
+        val recipeImageView: AppCompatImageView = itemView.findViewById(R.id.recipe_picture_image_view)
         val recipeTitleView: AppCompatTextView = itemView.findViewById(R.id.recipe_title_text_view)
-        val recipeScoreView: AppCompatTextView =
-            itemView.findViewById(R.id.recipe_ghg_score_text_view)
-        val recipeAddEmissionsButton: AppCompatImageButton =
-            itemView.findViewById(R.id.recipe_add_emissions_button)
+        val recipeScoreView: AppCompatTextView = itemView.findViewById(R.id.recipe_ghg_score_text_view)
+        val recipeAddEmissionsButton: AppCompatImageButton = itemView.findViewById(R.id.recipe_add_emissions_button)
 
         init {
             recipeTitleView.setSpannableFactory(spannableFactory)
@@ -101,12 +98,25 @@ class RecipeCardAdapter(
         fun onAddEmissionsClick(position: Int)
     }
 
+    /**
+     * Extension function to trim the title of the recipe that will be displayed in the recipe card.
+     *
+     * @return The trimmed recipe title.
+     */
     private fun String?.trimRecipeTitle(): CharSequence = if (this!!.length >= 22) {
         "${this.subSequence(0, 22).trim()}..."
     } else {
         this.toString().trim()
     }
 
+    /**
+     * The score to be displayed in the recipe card.
+     *
+     * @param context The context of the activity hosting [RecipesFragment]
+     * @param score The score to be shown
+     *
+     * @return A GHG emissions number with the correct color selection
+     */
     private fun recipeCardScore(context: Context, score: BigDecimal): SpannableString {
         val scoreSpannable = SpannableString(score.toString())
 

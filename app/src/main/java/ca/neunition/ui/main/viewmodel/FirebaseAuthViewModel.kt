@@ -28,7 +28,7 @@ class FirebaseAuthViewModel(application: Application) : AndroidViewModel(applica
     fun signInWithFirebase(credential: AuthCredential, provider: String): LiveData<User> {
         return authRepository.firebaseAuthSignIn(credential, provider)
     }
-    
+
     /**
      * Call [createUserInDatabaseIfNotExists] method in [FirebaseAuthRepository].
      *
@@ -39,6 +39,9 @@ class FirebaseAuthViewModel(application: Application) : AndroidViewModel(applica
         return authRepository.createUserInDatabaseIfNotExists(authenticatedUser, provider)
     }
 
+    /**
+     * Cancel all Firebase Authentication coroutine scopes.
+     */
     fun cancelCoroutines() {
         authRepository.cancelCoroutines()
     }

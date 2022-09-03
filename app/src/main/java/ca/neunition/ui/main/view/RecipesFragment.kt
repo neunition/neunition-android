@@ -113,7 +113,10 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
 
         recipesRecyclerView.apply {
             setHasFixedSize(false)
-            layoutAnimation = AnimationUtils.loadLayoutAnimation(requireActivity(), R.anim.recipes_recycler_view_animation)
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(
+                requireActivity(),
+                R.anim.recipes_recycler_view_animation
+            )
         }
 
         firebaseDatabaseViewModel = ViewModelProvider(requireActivity())[FirebaseDatabaseViewModel::class.java]
@@ -162,8 +165,13 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                             recipesList += item
                         }
 
-                        recipesList = recipesList.sortedBy { recipe -> recipe.recipeScore }.toCollection(ArrayList())
-                        firebaseDatabaseViewModel.updateChildValue("recipesJsonData", jsonAdapter.toJson(recipesList))
+                        recipesList = recipesList.sortedBy { recipe ->
+                            recipe.recipeScore
+                        }.toCollection(ArrayList())
+                        firebaseDatabaseViewModel.updateChildValue(
+                            "recipesJsonData",
+                            jsonAdapter.toJson(recipesList)
+                        )
 
                         withContext(Dispatchers.Main) {
                             loadingDialog.dismissDialog()
@@ -187,7 +195,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
                                 sort()
                             }
                         } else {
-                            // When checkbox is unselected remove position from labels list
+                            // When checkbox is unselected, remove position from labels list
                             labelsList.remove(i)
                         }
                     }
@@ -300,7 +308,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     /**
      * Open a full screen dialog that will show the recipe.
      *
-     * @param position the specific row to open the url
+     * @param position The specific row to open the url
      */
     override fun onRecipeClick(position: Int) {
         showInterstitialAd()
@@ -310,6 +318,11 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         ).show(childFragmentManager, RECIPE_WEB_VIEW_TAG)
     }
 
+    /**
+     * Add the GHG emissions of a recipe to the user's daily, weekly, monthly, and yearly records.
+     *
+     * @param position The specific row to get the GHG emissions the user wants to add
+     */
     override fun onAddEmissionsClick(position: Int) {
         val recipeName = recipesList[position].recipeTitle.toString()
         val score = recipesList[position].recipeScore
@@ -388,8 +401,8 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     }
 
     /**
-     * Hide the keyboard, show a loading spinner, and clear the current list of recipes when a new
-     * GET request is being made.
+     * Show a reward ad, hide the keyboard, show a loading spinner, and clear the current list of
+     * recipes when a new GET request is being made.
      */
     private fun processingGetRequest() {
         showRewardedVideo()
@@ -407,9 +420,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
     /**
      * Calculate the GHG emissions for the ingredients received.
      *
-     * @param ingredients the ingredients to calculate the carbon footprint for
+     * @param ingredients List of ingredients to calculate the carbon footprint for
      *
-     * @return the calculated CO2 emissions
+     * @return Calculated GHG emissions for the ingredients
      */
     private fun calculateRecipeEmissions(ingredients: List<Ingredient>?): BigDecimal {
         var score = BigDecimal("0.00")
@@ -472,6 +485,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         return
     }
 
+    /**
+     * Load a reward ad into the app.
+     */
     private fun loadRewardedAd() {
         if (mRewardedAd == null) {
             RewardedAd.load(
@@ -493,6 +509,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         }
     }
 
+    /**
+     * Show a reward ad to the user.
+     */
     private fun showRewardedVideo() {
         if (mRewardedAd != null) {
             mRewardedAd?.fullScreenContentCallback =
@@ -513,6 +532,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         }
     }
 
+    /**
+     * Load a interstitial ad into the app.
+     */
     private fun loadInterstitialAd() {
         InterstitialAd.load(
             requireActivity(),
@@ -532,6 +554,9 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         )
     }
 
+    /**
+     * Show a interstitial ad to the user.
+     */
     private fun showInterstitialAd() {
         if (mInterstitialAd != null) {
             mInterstitialAd?.fullScreenContentCallback =
