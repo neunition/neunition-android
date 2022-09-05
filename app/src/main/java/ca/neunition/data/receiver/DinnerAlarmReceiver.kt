@@ -19,11 +19,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import ca.neunition.R
+import ca.neunition.di.NotificationsClass
 import ca.neunition.ui.main.view.SplashActivity
 import ca.neunition.util.Constants
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 @RequiresApi(Build.VERSION_CODES.O)
 class DinnerAlarmReceiver : BroadcastReceiver() {
+    @Inject lateinit var notificationsClass: NotificationsClass
+
     override fun onReceive(context: Context, intent: Intent) {
         val i = Intent(context, SplashActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -44,9 +50,13 @@ class DinnerAlarmReceiver : BroadcastReceiver() {
         with(NotificationManagerCompat.from(context)) {
             notify(Constants.DINNER_NOTIFICATION_ID, builder.build())
         }
+
+        notificationsClass.dinnerAlarm()
     }
 
     companion object {
-        private val DINNER_CONTEXT_TEXT: String by lazy { "Is it? Not sure, but hopefully it's filled with ingredients that can save our planet! Just need to record your GHG emissions one more time before the day ends!" }
+        private val DINNER_CONTEXT_TEXT: String by lazy {
+            "Is it? Not sure, but hopefully it's filled with ingredients that can save our planet! Just need to record your GHG emissions one more time before the day ends!"
+        }
     }
 }

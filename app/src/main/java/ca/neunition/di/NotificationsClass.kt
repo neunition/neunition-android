@@ -103,7 +103,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
     /**
      * Turn on and send Breakfast Reminder notification.
      */
-    private fun breakfastAlarm() {
+    fun breakfastAlarm() {
         breakfastCalendar = Calendar.getInstance()
         breakfastCalendar[Calendar.HOUR_OF_DAY] = 8
         breakfastCalendar[Calendar.MINUTE] = 0
@@ -138,7 +138,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
     /**
      * Turn on and send Lunch Reminder notification.
      */
-    private fun lunchAlarm() {
+    fun lunchAlarm() {
         lunchCalendar = Calendar.getInstance()
         lunchCalendar[Calendar.HOUR_OF_DAY] = 12
         lunchCalendar[Calendar.MINUTE] = 0
@@ -173,7 +173,7 @@ class NotificationsClass @Inject constructor(@ApplicationContext private val con
     /**
      * Turn on and send Dinner Reminder notification.
      */
-    private fun dinnerAlarm() {
+    fun dinnerAlarm() {
         dinnerCalendar = Calendar.getInstance()
         dinnerCalendar[Calendar.HOUR_OF_DAY] = 18
         dinnerCalendar[Calendar.MINUTE] = 30
