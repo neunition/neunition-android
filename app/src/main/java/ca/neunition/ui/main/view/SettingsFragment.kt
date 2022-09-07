@@ -15,6 +15,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -34,6 +35,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.play.core.review.ReviewManagerFactory
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.GoogleAuthProvider
@@ -262,17 +264,31 @@ class SettingsFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 Constants.CUSTOM_TABS_BUILDER.launchUrl(
                     requireActivity(),
-                    Uri.parse("https://www.cnn.com/")
+                    Uri.parse("https://www.neunition.com/#about")
                 )
                 true
             }
 
         rateUsPreference.onPreferenceClickListener =
             Preference.OnPreferenceClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(
-                    requireActivity(),
-                    Uri.parse("https://www.cnn.com/")
-                )
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        val reviewManager = ReviewManagerFactory.create(requireActivity())
+                        val reviewRequest = reviewManager.requestReviewFlow()
+                        reviewRequest.await().let { reviewInfo ->
+                            val reviewFlow = reviewManager.launchReviewFlow(requireActivity(), reviewInfo)
+                            reviewFlow.await().let { }
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.Main) {
+                            toastErrorMessages(
+                                requireActivity(),
+                                "No internet connection found. Please check your connection.",
+                                "${error.message}"
+                            )
+                        }
+                    }
+                }
                 true
             }
 
@@ -280,7 +296,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 Constants.CUSTOM_TABS_BUILDER.launchUrl(
                     requireActivity(),
-                    Uri.parse("https://www.cnn.com/")
+                    Uri.parse("https://www.neunition.com/privacy")
                 )
                 true
             }
@@ -289,7 +305,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 Constants.CUSTOM_TABS_BUILDER.launchUrl(
                     requireActivity(),
-                    Uri.parse("https://www.cnn.com/")
+                    Uri.parse("https://www.neunition.com/terms")
                 )
                 true
             }
@@ -298,7 +314,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             Preference.OnPreferenceClickListener {
                 Constants.CUSTOM_TABS_BUILDER.launchUrl(
                     requireActivity(),
-                    Uri.parse("https://www.cnn.com/")
+                    Uri.parse("https://www.neunition.com/#contact")
                 )
                 true
             }

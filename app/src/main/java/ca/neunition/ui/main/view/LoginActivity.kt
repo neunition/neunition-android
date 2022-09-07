@@ -66,10 +66,10 @@ class LoginActivity : AppCompatActivity() {
         termsPrivacyAgreement = findViewById(R.id.terms_privacy_agreement)
         termsPrivacyAgreement.makeLinks(
             Pair("Terms & Conditions", View.OnClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.google.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.neunition.com/terms"))
             }),
             Pair("Privacy Policy", View.OnClickListener {
-                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.cnn.com/"))
+                Constants.CUSTOM_TABS_BUILDER.launchUrl(this, Uri.parse("https://www.neunition.com/privacy"))
             })
         )
 
