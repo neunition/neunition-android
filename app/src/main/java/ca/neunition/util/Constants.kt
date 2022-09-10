@@ -37,10 +37,10 @@ object Constants {
     val CUSTOM_TABS_BUILDER: CustomTabsIntent by lazy { CustomTabsIntent.Builder().build() }
 
     val AD_REQUEST: AdRequest by lazy { AdRequest.Builder().build() }
-    val BANNER_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/6300978111" }
-    val REWARDED_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/5224354917" }
-    val RECIPES_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/1033173712" }
-    val INGREDIENTS_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-3940256099942544/1033173712" }
+    val BANNER_AD_UNIT_ID: String by lazy { "ca-app-pub-2714747137112577/4271938147" }
+    val REWARDED_AD_UNIT_ID: String by lazy { "ca-app-pub-2714747137112577/2732831041" }
+    val RECIPES_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-2714747137112577/6439995977" }
+    val INGREDIENTS_INTERSTITIAL_AD_UNIT_ID: String by lazy { "ca-app-pub-2714747137112577/4229637746" }
 
     val REQUEST_OPTIONS: RequestOptions by lazy {
         RequestOptions.diskCacheStrategyOf(DiskCacheStrategy.NONE)
