@@ -19,7 +19,7 @@ android {
         minSdk 21
         targetSdk 33
         multiDexEnabled true
-        versionCode 1
+        versionCode 3
         versionName "1.0.0"
         vectorDrawables.useSupportLibrary = true
         buildConfigField 'String', 'EDAMAM_API_ID', EDAMAM_API_ID
