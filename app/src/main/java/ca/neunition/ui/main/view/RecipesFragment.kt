@@ -368,11 +368,7 @@ class RecipesFragment : Fragment(), RecipeCardAdapter.OnClickListener {
         try {
             val url = URL(recipesList[0].recipeImage.toString())
             val connection = url.openConnection() as HttpURLConnection
-            connection.apply {
-                readTimeout = 5000
-                connectTimeout = 5000
-                requestMethod = "GET"
-            }
+            connection.requestMethod = "GET"
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_FORBIDDEN) {

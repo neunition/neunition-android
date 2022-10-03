@@ -19,7 +19,7 @@ android {
         minSdk 21
         targetSdk 33
         multiDexEnabled true
-        versionCode 3
+        versionCode 4
         versionName "1.0.0"
         vectorDrawables.useSupportLibrary = true
         buildConfigField 'String', 'EDAMAM_API_ID', EDAMAM_API_ID
@@ -87,7 +87,7 @@ dependencies {
     kapt 'com.github.bumptech.glide:compiler:4.13.2'
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.recyclerview:recyclerview-selection:1.1.0'
-    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:18.0.1'
+    implementation 'com.google.android.gms:play-services-mlkit-text-recognition:18.0.2'
     implementation 'org.adblockplus:adblock-android:4.4.0'
     implementation 'org.adblockplus:adblock-android-settings:4.4.0'
     implementation 'org.adblockplus:adblock-android-webview:4.4.0'
